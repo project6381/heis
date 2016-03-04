@@ -2,8 +2,9 @@ from socket import *
 from threading import Thread
 from threading import Lock
 import time 
+import broadcast 
 
-class Broadcast:
+class MessageHandler:
 	def __init__(self):
 		self.message_list = [] 
 		self.message_list_key = Lock()
@@ -13,25 +14,26 @@ class Broadcast:
 
 	def polling_messages(self):
 
-		old_message = 'denne beskjeden vil aldri bli sendt'
+		old_message = 'denne beskjeden vil aldri bli hort'
 		self.thread_started = True
 
 		# Setup udp
-		broadcast = ('', 17852)
+		port = ('', 17852)
 		udp = socket(AF_INET, SOCK_DGRAM)
-		udp.bind(broadcast)
+		udp.bind(port)
 		udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+
 		
 		# Fetching data
-		while True: 
+		while True:
 			data, address = udp.recvfrom(1024)
-			message = self.errorcheck(data)
-
+			message = broadcast.errorcheck(data)
 			if message != old_message:
+				#with message_list_key:
 				self.message_list_key.acquire()
 				self.message_list.append(message)
 				self.message_list_key.release()
-				print (self.message_list)		
+				#print (self.message_list)		
 				old_message = message
 		#udp.close() 
 
@@ -47,16 +49,8 @@ class Broadcast:
 			self.message_list_key.release()
 			return first_element
 		else:
-			return 'no messeages'
-
-	def send(self,data):
-	
-		send = ('<broadcast>', 17852)
-		udp = socket(AF_INET, SOCK_DGRAM)
-		udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-		message='<%s;%s>' % (str(len(data)), data)
-		udp.sendto(message, send)
-		#udp.close()
+			pass
+			#return 'no messages'
 
 
 	def start(self,thread):
@@ -64,29 +58,3 @@ class Broadcast:
 			thread.start()
 			#thread.join()
 
-	def errorcheck(self,data):
-		if data[0]=='<' and data[len(data)-1]=='>':
-
-			counter=1
-			separator=False
-			separator_pos=0
-			for char in data:
-				if char == ";" and separator==False:
-					separator_pos=counter
-					separator=True
-				counter+=1
-
-			message_length=str(len(data)-separator_pos-1)
-			test_length=str()
-			for n in range(1,separator_pos-1):
-				test_length+=data[n]
-
-			if test_length==message_length and separator==True:
-				message=str()
-				for n in range(separator_pos,len(data)-1):
-					message+=data[n]
-				return message
-			else:
-				return None
-		else:
-			return None
