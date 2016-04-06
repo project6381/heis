@@ -82,6 +82,9 @@ def main():
 			
 			my_master_queue = slave_driver.read_saved_master_queue()
 			print "CHANGING MASTER STATE = TRUE -> my_master_queue: " + str(my_master_queue)
+			for i in range(0,8):
+				if my_master_queue[i] > 0:
+					my_master_queue[i]=1
 			message_handler.send_to_master(my_master_queue[0:4],my_master_queue[4:8],MY_ID,position[0],position[1],position[2],master_message['queue_id'])
 			orders_ok = True
 			for floor in range(0,N_FLOORS):
