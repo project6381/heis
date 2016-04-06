@@ -21,7 +21,7 @@ def main():
 	floor_up = [0]*4
 	floor_down = [0]*4
 	master_id = 10
-	changing_master = True
+	changing_master = False
 	last_master_id = 0
 	while True:
 
@@ -69,14 +69,14 @@ def main():
 		master_queue = master_message['master_floor_up'][:] + master_message['master_floor_down'][:]
 
 		print "master_queue: " + str(master_queue) 
-		
+		print str(master_message['master_id']) + 'master_id'
 		#if master_id == MY_ID:
 		#	is_master = True
 
 		master_id = master_message['master_id']
 
-		if last_master_id !=  master_id: 
-			changing_master = True
+		#if last_master_id !=  master_id: 
+		#	changing_master = True
 		
 		if changing_master:	
 			

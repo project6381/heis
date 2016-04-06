@@ -14,10 +14,10 @@ def main():
 
 	#allocating arrays
 	button_orders = [0]*8
-	last_button_orders = [10]*8
+	last_button_orders = [0]*8
 	elevator_positions = [[0,0,1],[0,0,1],[0,0,1]]
 	elevator_orders = [0]*8
-	last_elevator_orders = [10]*8
+	last_elevator_orders = [0]*8
 	elevator_online = [0]*N_ELEVATORS
 	elevators_received_current_queue_id = [0]*N_ELEVATORS
 
@@ -41,12 +41,41 @@ def main():
 
 	while True:
 
+		queue_id = 1
+		#allocating arrays
+		button_orders = [0]*8
+		last_button_orders = [0]*8
+		elevator_positions = [[0,0,1],[0,0,1],[0,0,1]]
+		elevator_orders = [0]*8
+		last_elevator_orders = [0]*8
+		elevator_online = [0]*N_ELEVATORS
+		elevators_received_current_queue_id = [0]*N_ELEVATORS
+
+
+		active_slaves = 0
+		#acknowledges = 0
+		#execute_queue = 0
+		arrived = 0
+		acknowledged_queue_id = []
+		goto_floor_up = [0]*4
+		goto_floor_down = [0]*4
+
+		last_direction = 0
+
+		executer_id = [0]*8
+		active_master = False
+		#semi_active_master = False
+		downtime_elevator_online = [time.time() + 3]*N_ELEVATORS
+		downtime_queue_id = time.time() + 3
+		timeout_active_slaves = 0
 		master_handler.update_master_alive(MY_ID)
-		master_queue = master_handler.get_master_queue()
+		#master_queue = master_handler.get_master_queue()
 
 		if master_handler.check_master_alive() == MY_ID:
 			active_master = True
-			button_orders = master_queue[:]
+		#	button_orders = master_queue[:]
+
+
 
 		print "I am NOT master, my id is: " + str(MY_ID)
 
@@ -108,7 +137,7 @@ def main():
 								
 				elevator_orders = master_handler.order_elevator(last_button_orders, elevator_positions, elevator_online)
 				print elevator_online
-				print elevator_orders
+				print button_orders
 				goto_floor_up[0:4] = elevator_orders[0:4]
 				goto_floor_down[0:4] = elevator_orders[4:8]
 			
@@ -122,7 +151,7 @@ def main():
 				for i in range(0,N_ELEVATORS):
 					timeout_active_slaves = 1
 
-			master_handler.update_master_button_order(button_orders)
+			#master_handler.update_master_button_order(button_orders)
 			time.sleep(0.02)
 
 			if master_handler.check_master_alive() != MY_ID:
