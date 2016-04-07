@@ -11,19 +11,34 @@ class MasterHandler:
 		self.__elevator_positions = [ [0]*N_ELEVATORS ]*N_ELEVATORS
 		self.__button_orders = [0]*N_FLOORS*2
 		self.__elevator_orders = [0]*N_FLOORS*2
-		self.__elevator_online = [1]*N_ELEVATORS
-
 
 		self.__active_masters = [0]*N_ELEVATORS
-		
+		self.__orders_id = 1
+		self.__synced_elevators = [0]*N_ELEVATORS
+		self.__elevator_online = [0]*N_ELEVATORS
 		self.__active_masters_key = Lock()
 		self.__master_alive_thread_started = False
-		self.__thread_buffering_master_alive = Thread(target = self.__buffering_master_alive_messages, args = (),)
+		self.__thread_buffering_master_alive = Thread(target = self.__master_alive_message_handler, args = (),)
 
+		self.__orders = [0]*N_FLOORS*2
+		self.__last_button_orders = [0]*N_FLOORS*2
+
+		self.__downtime_order_id = time.time() + 2
+		self.__downtime_elevator_online = [time.time() + 3]*N_ELEVATORS
+		self.__timeout_active_slaves = 0
+
+
+	def fetch_for_faen(self):
+		
+		return (self.__elevator_orders,self.__orders_id)
 
 	def update_master_alive(self, elevator_id):
 		self.__send(str(elevator_id),MASTER_TO_MASTER_PORT)
 
+	def update_elevator_position(self,slave_id,last_floor,next_floor,direction):
+
+		self.__elevator_positions[slave_id-1] = [last_floor,next_floor,direction] 
+				
 
 	def check_master_alive(self):	
 
@@ -35,12 +50,54 @@ class MasterHandler:
 				return i+1
 		return -1 
 
+	def clear_completed_orders(self,direction,last_floor,next_floor):
+	
+		if last_floor == next_floor:
+			arrived = last_floor
+			if (direction == DIRN_UP) or (direction == DIRN_STOP):
+				self.__orders[arrived] = 0
+			if (direction == DIRN_DOWN) or (direction == DIRN_STOP):
+				self.__orders[arrived+4] = 0
 
 
-	def order_elevator(self, button_orders, elevator_positions, elevator_online):
-		self.__button_orders = button_orders
-		self.__elevator_positions = elevator_positions
-		self.__elevator_online = elevator_online
+	def add_new_orders(self,slave_floor_up,slave_floor_down):
+
+		for i in range(0,4):
+			if slave_floor_up[i] == 1: 
+				self.__orders[i] = 1
+
+		for i in range(0,4):
+			if slave_floor_down[i] == 1: 
+				self.__orders[i+4] = 1	
+
+	def update_sync_state(self,orders_id,slave_id):
+					
+		if self.__orders_id == orders_id:
+			self.__synced_elevators[slave_id-1] = 1
+
+		self.__elevator_online[slave_id-1] = 1
+		self.__downtime_elevator_online[slave_id-1] = time.time() + 1
+		active_slaves = self.__elevator_online.count(1)
+
+		
+		if (self.__orders != self.__last_button_orders) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_active_slaves == 1): # and (0 not in elevators_queue_id):
+			#print '1111111111111111111111111111111111'
+			self.__orders_id += 1
+			if self.__orders_id > 9999: 
+				self.__orders_id = 1
+			self.__last_button_orders = self.__orders[:]
+			self.__downtime_order_id = time.time() + 2
+			self.__timeout_active_slaves = 0
+
+			
+		print self.__orders				
+		self.__order_elevator()
+
+
+	def __order_elevator(self):
+		self.__button_orders = self.__last_button_orders # quick fix
+		#self.__elevator_positions = elevator_positions
+		#self.__elevator_online = elevator_online
 					
 		# UP button calls
 		for floor in range(0,N_FLOORS):
@@ -97,11 +154,11 @@ class MasterHandler:
 					elif (elevator_priority[elevator] > elevator_priority[elevator-1]) and (self.__elevator_online[elevator] == 1):
 						self.__elevator_orders[floor] = elevator+1
 
-		return self.__elevator_orders
+		#return self.__elevator_orders
 
 
 		
-	def __buffering_master_alive_messages(self):
+	def __master_alive_message_handler(self):
 
 		last_message = 'This message will never be heard'
 		self.__master_alive_thread_started = True
@@ -126,7 +183,19 @@ class MasterHandler:
 				if downtime[i] < time.time():
 					self.__active_masters[i] = 0
 
-				
+			
+
+			''' quick fix '''
+			for i in range(0,N_ELEVATORS):
+				if self.__downtime_elevator_online[i] < time.time():
+					self.__elevator_online[i] = 0
+
+
+			if self.__downtime_order_id < time.time():
+				for i in range(0,N_ELEVATORS):
+					self.__timeout_active_slaves = 1
+
+
 
 	def __send(self, data, port):
 		send = ('<broadcast>', port)

@@ -79,6 +79,7 @@ def main():
 
 			last_master_id = master_message['master_id']
 
+		print floor_up + floor_down
 		message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
 		time.sleep(0.1)
 if __name__ == "__main__":
