@@ -19,17 +19,17 @@ class MessageHandler:
 								'last_floor': 0,
 								'next_floor': 0,
 								'direction': 0,
-								'queue_id': 0}
+								'orders_id': 0}
 
 		self.__master_message = {'orders': [0]*8,
 								'master_id': 0,
-								'queue_id': 0}
+								'orders_id': 0}
 
 		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages, args = (),)
 		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages, args = (),)
 	
 
-	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction,queue_id):
+	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction,orders_id):
 		
 		floor_up = str()
 		floor_down = str()
@@ -41,22 +41,22 @@ class MessageHandler:
 			floor_down += str(floor)	
 
 
-		message = "%s%s%i%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction,queue_id)
+		message = "%s%s%i%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction,orders_id)
 		self.__send(message,SLAVE_TO_MASTER_PORT)
 
 
-	def send_to_slave(self,orders,master_id,queue_id):
+	def send_to_slave(self,orders,master_id,orders_id):
 
 		message = str()
 
 		master_id = str(master_id)
-		queue_id = str(queue_id)
+		orders_id = str(orders_id)
 		
 		for order in orders:
 			message += str(order)
 
 		message += master_id
-		message += queue_id
+		message += orders_id
 		
 		for _ in range(0,3):
 			self.__send(message,MASTER_TO_SLAVE_PORT)
@@ -73,7 +73,7 @@ class MessageHandler:
 				self.__master_message['orders'][i] = int(message[i])
 
 			self.__master_message['master_id'] = int(message[8])
-			self.__master_message['queue_id'] = int(message[9:])
+			self.__master_message['orders_id'] = int(message[9:])
 
 			return self.__master_message
 
@@ -91,7 +91,7 @@ class MessageHandler:
 			self.__slave_message['last_floor'] = int(message[9])
 			self.__slave_message['next_floor'] = int(message[10])
 			self.__slave_message['direction'] = int(message[11])
-			self.__slave_message['queue_id'] = int(message[12:])
+			self.__slave_message['orders_id'] = int(message[12:])
 
 			return self.__slave_message
 

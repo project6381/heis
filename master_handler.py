@@ -8,25 +8,22 @@ class MasterHandler:
 
 
 	def __init__(self):
-		self.__elevator_positions = [[0 for position in range(0,3)] for elevator in range(0,N_ELEVATORS)]
-		self.__button_orders = [0 for floor in range(0,N_FLOORS*2)]
-		self.__elevator_orders = [0 for button in range(0,N_FLOORS*2)]
-		self.__elevator_online = [1 for elevator in range(0,N_ELEVATORS)]
+		self.__elevator_positions = [ [0]*N_ELEVATORS ]*N_ELEVATORS
+		self.__button_orders = [0]*N_FLOORS*2
+		self.__elevator_orders = [0]*N_FLOORS*2
+		self.__elevator_online = [1]*N_ELEVATORS
 
-		#self.__master_queue = [0] * 8
+
 		self.__active_masters = [0]*N_ELEVATORS
+		
 		self.__active_masters_key = Lock()
 		self.__master_alive_thread_started = False
-		self.__button_orders_key = Lock()
-		self.__button_orders_thread_started = False
 		self.__thread_buffering_master_alive = Thread(target = self.__buffering_master_alive_messages, args = (),)
-		#self.__thread_buffering_button_orders = Thread(target = self.__buffering_button_orders, args = (),)
+
 
 	def update_master_alive(self, elevator_id):
 		self.__send(str(elevator_id),MASTER_TO_MASTER_PORT)
 
-	
-		#print "Active masters: " + str(self.__active_masters)
 
 	def check_master_alive(self):	
 

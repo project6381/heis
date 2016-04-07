@@ -15,7 +15,7 @@ def main():
 	floor_down = [0]*4
 	changing_master = False
 	last_master_id = 0
-	queue_id = 0
+	orders_id = 0
 
 	while True:
 
@@ -45,7 +45,7 @@ def main():
 			
 
 					
-			queue_id = master_message['queue_id']
+			orders_id = master_message['orders_id']
 			master_queue = master_message['orders'][:]
 
 			#if master_message['master_id'] == MY_ID:
@@ -61,7 +61,7 @@ def main():
 				for i in range(0,8):
 					if my_master_queue[i] > 0:
 						my_master_queue[i]=1
-				message_handler.send_to_master(my_master_queue[0:4],my_master_queue[4:8],MY_ID,position[0],position[1],position[2],master_message['queue_id'])
+				message_handler.send_to_master(my_master_queue[0:4],my_master_queue[4:8],MY_ID,position[0],position[1],position[2],master_message['orders_id'])
 				orders_ok = True
 				for order in range(0,N_FLOORS):
 					if ((my_master_queue[order] > 0) and (master_message['orders'][order] == 0)):
@@ -75,11 +75,11 @@ def main():
 				slave_driver.master_queue_elevator_run(master_queue)
 
 			#print ['floor_up:'] + master_message['master_floor_up'] + ['floor_down:'] + master_message['master_floor_down'] 
-			#print master_message['queue_id']
+			#print master_message['orders_id']
 
 			last_master_id = master_message['master_id']
 
-		message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],queue_id)
+		message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
 		time.sleep(0.1)
 if __name__ == "__main__":
     main()
