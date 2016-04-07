@@ -27,22 +27,6 @@ class MasterHandler:
 
 	
 		#print "Active masters: " + str(self.__active_masters)
-	'''
-	def update_master_button_order(self, button_orders):
-		
-		message = str()
-		for elements in button_orders:
-			message += str(elements)
-
-		self.__send(message,MASTER_BUTTON_ORDERS_PORT)		
-	
-	def get_master_queue(self): 
-
-		if self.__button_orders_thread_started is not True:
-			self.__start(self.__thread_buffering_button_orders)
-
-		return self.__master_queue
-	'''	
 
 	def check_master_alive(self):	
 
@@ -54,44 +38,7 @@ class MasterHandler:
 				return i+1
 		return -1 
 
-	def __send(self, data, port):
-		send = ('<broadcast>', port)
-		udp = socket(AF_INET, SOCK_DGRAM)
-		udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-		message='<%s;%s>' % (str(len(data)), data)
-		udp.sendto(message, send)
-		udp.close()
 
-	def __start(self,thread):
-				thread.daemon = True # Terminate thread when "main" is finished
-				thread.start()
-
-	def __errorcheck(self,data):
-		if data[0]=='<' and data[len(data)-1]=='>':
-
-			counter=1
-			separator=False
-			separator_pos=0
-			for char in data:
-				if char == ";" and separator==False:
-					separator_pos=counter
-					separator=True
-				counter+=1
-
-			message_length=str(len(data)-separator_pos-1)
-			test_length=str()
-			for n in range(1,separator_pos-1):
-				test_length+=data[n]
-
-			if test_length==message_length and separator==True:
-				message=str()
-				for n in range(separator_pos,len(data)-1):
-					message+=data[n]
-				return message
-			else:
-				return None
-		else:
-			return None
 
 	def order_elevator(self, button_orders, elevator_positions, elevator_online):
 		self.__button_orders = button_orders
@@ -154,54 +101,35 @@ class MasterHandler:
 						self.__elevator_orders[floor] = elevator+1
 
 		return self.__elevator_orders
+
+
 		
 	def __buffering_master_alive_messages(self):
 
-			last_message = 'This message will never be heard'
-			self.__master_alive_thread_started = True
+		last_message = 'This message will never be heard'
+		self.__master_alive_thread_started = True
 
-			port = ('', MASTER_TO_MASTER_PORT)
-			udp = socket(AF_INET, SOCK_DGRAM)
-			udp.bind(port)
-			udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+		port = ('', MASTER_TO_MASTER_PORT)
+		udp = socket(AF_INET, SOCK_DGRAM)
+		udp.bind(port)
+		udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 
-			downtime = [time.time() + 3]*N_ELEVATORS
-		
-			while True:
-				data, address = udp.recvfrom(1024)
-				message = self.__errorcheck(data)
-				#print "Message: " + message
-				if message is not None:
-					with self.__active_masters_key:
-						self.__active_masters[int(message)-1] = 1		
-						downtime[int(message)-1] = time.time() + 3
+		downtime = [time.time() + 3]*N_ELEVATORS
+	
+		while True:
+			data, address = udp.recvfrom(1024)
+			message = self.__errorcheck(data)
+			#print "Message: " + message
+			if message is not None:
+				with self.__active_masters_key:
+					self.__active_masters[int(message)-1] = 1		
+					downtime[int(message)-1] = time.time() + 3
+			
+			for i in range(0,N_ELEVATORS):
+				if downtime[i] < time.time():
+					self.__active_masters[i] = 0
+
 				
-				for i in range(0,N_ELEVATORS):
-					if downtime[i] < time.time():
-						self.__active_masters[i] = 0
-	'''
-	def __buffering_button_orders(self):
-
-			last_message = 'This message will never be heard'
-			self.__button_orders_thread_started = True
-
-			port = ('', MASTER_BUTTON_ORDERS_PORT)
-			udp = socket(AF_INET, SOCK_DGRAM)
-			udp.bind(port)
-			udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-
-		
-			while True:
-				data, address = udp.recvfrom(1024)
-				message = self.__errorcheck(data)
-				#print "Message: " + message
-				if message is not None:
-					with self.__button_orders_key:
-						for i in range(0,8):
-							if (self.__master_queue[i] == 1) or (int(message[i]) == 1): 
-								self.__master_queue[i] = 1	
-		'''		
-					
 
 	def __send(self, data, port):
 		send = ('<broadcast>', port)
@@ -212,8 +140,8 @@ class MasterHandler:
 		udp.close()
 
 	def __start(self,thread):
-				thread.daemon = True # Terminate thread when "main" is finished
-				thread.start()
+		thread.daemon = True # Terminate thread when "main" is finished
+		thread.start()
 
 	def __errorcheck(self,data):
 		if data[0]=='<' and data[len(data)-1]=='>':

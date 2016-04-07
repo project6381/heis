@@ -8,7 +8,7 @@ from collections import Counter
 def main():
 
 	#instantiating classes
-	message_handler = MessageHandler(123)
+	message_handler = MessageHandler()
 	master_handler = MasterHandler()
 	queue_id = 1
 
@@ -20,21 +20,14 @@ def main():
 	last_elevator_orders = [0]*8
 	elevator_online = [0]*N_ELEVATORS
 	elevators_received_current_queue_id = [0]*N_ELEVATORS
-
-
 	active_slaves = 0
-	#acknowledges = 0
-	#execute_queue = 0
 	arrived = 0
 	acknowledged_queue_id = []
 	goto_floor_up = [0]*4
 	goto_floor_down = [0]*4
-
 	last_direction = 0
-
 	executer_id = [0]*8
 	active_master = False
-	#semi_active_master = False
 	downtime_elevator_online = [time.time() + 3]*N_ELEVATORS
 	downtime_queue_id = time.time() + 3
 	timeout_active_slaves = 0
@@ -50,30 +43,23 @@ def main():
 		last_elevator_orders = [0]*8
 		elevator_online = [0]*N_ELEVATORS
 		elevators_received_current_queue_id = [0]*N_ELEVATORS
-
-
 		active_slaves = 0
-		#acknowledges = 0
-		#execute_queue = 0
 		arrived = 0
 		acknowledged_queue_id = []
 		goto_floor_up = [0]*4
 		goto_floor_down = [0]*4
-
 		last_direction = 0
-
 		executer_id = [0]*8
 		active_master = False
-		#semi_active_master = False
 		downtime_elevator_online = [time.time() + 3]*N_ELEVATORS
 		downtime_queue_id = time.time() + 3
 		timeout_active_slaves = 0
 		master_handler.update_master_alive(MY_ID)
-		#master_queue = master_handler.get_master_queue()
+
 
 		if master_handler.check_master_alive() == MY_ID:
 			active_master = True
-		#	button_orders = master_queue[:]
+
 
 
 
@@ -86,7 +72,6 @@ def main():
 			#print "I AM master, my id is: " + str(my_id)
 			
 			master_handler.update_master_alive(MY_ID)
-
 			slave_message = message_handler.receive_from_slave()
 			if slave_message is not None:
 			
@@ -141,7 +126,7 @@ def main():
 				goto_floor_up[0:4] = elevator_orders[0:4]
 				goto_floor_down[0:4] = elevator_orders[4:8]
 			
-			message_handler.send_to_slave(goto_floor_up,goto_floor_down,executer_id,MY_ID,queue_id)
+			message_handler.send_to_slave(goto_floor_up,goto_floor_down,MY_ID,queue_id)
 			
 			for i in range(0,N_ELEVATORS):
 				if downtime_elevator_online[i] < time.time():
@@ -151,15 +136,11 @@ def main():
 				for i in range(0,N_ELEVATORS):
 					timeout_active_slaves = 1
 
-			#master_handler.update_master_button_order(button_orders)
+
 			time.sleep(0.02)
 
-			if master_handler.check_master_alive() != MY_ID:
-				active_master = False
-				#semi_active_master = True
 
-		#while semi_active_master:
-			#semi_active_master = False
+
 
 
 if __name__ == "__main__":
