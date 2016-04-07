@@ -12,10 +12,9 @@ def main():
 	master_handler = MasterHandler()
 	queue_id = 1
 
-	#allocating arrays
 	button_orders = [0]*8
 	last_button_orders = [0]*8
-	elevator_positions = [[0,0,1],[0,0,1],[0,0,1]]
+	elevator_positions = [0,0,1]*N_ELEVATORS
 	elevator_orders = [0]*8
 	last_elevator_orders = [0]*8
 	elevator_online = [0]*N_ELEVATORS
@@ -33,27 +32,7 @@ def main():
 	timeout_active_slaves = 0
 
 	while True:
-
-		queue_id = 1
-		#allocating arrays
-		button_orders = [0]*8
-		last_button_orders = [0]*8
-		elevator_positions = [[0,0,1],[0,0,1],[0,0,1]]
-		elevator_orders = [0]*8
-		last_elevator_orders = [0]*8
-		elevator_online = [0]*N_ELEVATORS
-		elevators_received_current_queue_id = [0]*N_ELEVATORS
-		active_slaves = 0
-		arrived = 0
-		acknowledged_queue_id = []
-		goto_floor_up = [0]*4
-		goto_floor_down = [0]*4
-		last_direction = 0
-		executer_id = [0]*8
-		active_master = False
-		downtime_elevator_online = [time.time() + 3]*N_ELEVATORS
-		downtime_queue_id = time.time() + 3
-		timeout_active_slaves = 0
+	
 		master_handler.update_master_alive(MY_ID)
 
 
@@ -80,14 +59,13 @@ def main():
 				if slave_message['last_floor'] == slave_message['next_floor']:
 					arrived = slave_message['last_floor']	
 					if (last_direction == DIRN_UP) or (last_direction == DIRN_STOP):
-						#slave_message['slave_floor_up'][arrived] = 0
 						button_orders[arrived] = 0
 					if (last_direction == DIRN_DOWN) or (last_direction == DIRN_STOP):
-						#slave_message['slave_floor_down'][arrived] = 0
 						button_orders[arrived+4] = 0
 				
 				slave_id = slave_message['slave_id']
 				print str(slave_id) + '  slave id' 
+
 				elevator_positions[slave_id-1] = [slave_message['last_floor'],slave_message['next_floor'],slave_message['direction']] 
 				
 				for i in range(0,4):
