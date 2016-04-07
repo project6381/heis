@@ -21,8 +21,7 @@ class MessageHandler:
 								'direction': 0,
 								'queue_id': 0}
 
-		self.__master_message = {'master_floor_up': [0]*4,
-								'master_floor_down': [0]*4,
+		self.__master_message = {'orders': [0]*8,
 								'master_id': 0,
 								'queue_id': 0}
 
@@ -46,18 +45,15 @@ class MessageHandler:
 		self.__send(message,SLAVE_TO_MASTER_PORT)
 
 
-	def send_to_slave(self,master_floor_up,master_floor_down,master_id,queue_id):
+	def send_to_slave(self,orders,master_id,queue_id):
 
 		message = str()
 
 		master_id = str(master_id)
 		queue_id = str(queue_id)
 		
-		for floor_up in master_floor_up:
-			message += str(floor_up)
-
-		for floor_down in master_floor_down:
-			message += str(floor_down)
+		for order in orders:
+			message += str(order)
 
 		message += master_id
 		message += queue_id
@@ -73,9 +69,8 @@ class MessageHandler:
 
 		if message is not None:
 
-			for i in range (0,4):
-				self.__master_message['master_floor_up'][i] = int(message[i])
-				self.__master_message['master_floor_down'][i] = int(message[4+i]) 
+			for i in range (0,8):
+				self.__master_message['orders'][i] = int(message[i])
 
 			self.__master_message['master_id'] = int(message[8])
 			self.__master_message['queue_id'] = int(message[9:])

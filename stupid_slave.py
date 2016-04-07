@@ -37,16 +37,16 @@ def main():
 		if master_message is not None:	
 
 			for i in range (0,4):
-				if (master_message['master_floor_up'][i] != 0):
+				if (master_message['orders'][i] != 0):
 					floor_up[i] = 0
 
-				if (master_message['master_floor_down'][i] != 0):
+				if (master_message['orders'][4+i] != 0):
 					floor_down[i] = 0
 			
 
 					
 			queue_id = master_message['queue_id']
-			master_queue = master_message['master_floor_up'][:] + master_message['master_floor_down'][:]
+			master_queue = master_message['orders'][:]
 
 			#if master_message['master_id'] == MY_ID:
 			#	is_master = True
@@ -63,8 +63,8 @@ def main():
 						my_master_queue[i]=1
 				message_handler.send_to_master(my_master_queue[0:4],my_master_queue[4:8],MY_ID,position[0],position[1],position[2],master_message['queue_id'])
 				orders_ok = True
-				for floor in range(0,N_FLOORS):
-					if ((my_master_queue[floor] > 0) and (master_message['master_floor_up'][floor] == 0)) and ((my_master_queue[floor+4] > 0) and (master_message['master_floor_down'][floor] == 0)):
+				for order in range(0,N_FLOORS):
+					if ((my_master_queue[order] > 0) and (master_message['orders'][order] == 0)):
 						orders_ok = False 
 				if orders_ok: 
 					is_master = False 
