@@ -51,8 +51,8 @@ def main():
 			#if master_message['master_id'] == MY_ID:
 			#	is_master = True
 
-			#if last_master_id !=  master_message['master_id']: 
-			#	changing_master = True
+			if last_master_id !=  master_message['master_id']: 
+				changing_master = True
 			
 			if changing_master:	
 				

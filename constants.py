@@ -1,5 +1,5 @@
 # Constants
-MY_ID = 2
+MY_ID = 1
 
 # elev_motor_direction
 DIRN_DOWN = 0

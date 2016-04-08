@@ -167,16 +167,18 @@ class MessageHandler:
 		udp = socket(AF_INET, SOCK_DGRAM)
 		udp.bind(port)
 		udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-	
+		
+		downtime = time.time() + 0.5
+
 		while True:
 			data, address = udp.recvfrom(1024)
 			message = self.__errorcheck(data)
-			if message != last_message:
+			if (message != last_message) or (downtime < time.time()):
 				if message is not None:
 					with self.__receive_buffer_slave_key:
 						self.__receive_buffer_slave.append(message)		
 				last_message = message
-
+				downtime = time.time() + 0.5
 
 	def __errorcheck(self,data):
 		if data[0]=='<' and data[len(data)-1]=='>':
