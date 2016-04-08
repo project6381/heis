@@ -22,7 +22,8 @@ def main():
 		else:
 			slave_message = message_handler.receive_from_slave()
 
-			#if slave_message is not None:
+			if slave_message is not None:
+				master_handler.update_elevator_online(slave_message['slave_id'])	
 			#	master_handler.__elevator_online[slave_message['slave_id']-1] = 1
 			#	master_handler.__downtime_elevator_online[slave_message['slave_id']-1] = time.time() + SLAVE_TIMEOUT
 

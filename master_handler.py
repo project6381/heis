@@ -39,7 +39,10 @@ class MasterHandler:
 
 		self.__elevator_positions[slave_id-1] = [last_floor,next_floor,direction] 
 				
-
+	def update_elevator_online(self,slave_id):
+		self.__elevator_online[slave_id-1] = 1
+		self.__downtime_elevator_online[slave_id-1] = time.time() + 1
+		
 	def check_master_alive(self):	
 
 		if self.__master_alive_thread_started is not True:
@@ -91,10 +94,10 @@ class MasterHandler:
 
 			
 		print self.__orders				
-		self.__order_elevator()
+		self.__assign_orders()
 
 
-	def __order_elevator(self):
+	def __assign_orders(self):
 		self.__button_orders = self.__last_button_orders # quick fix
 		#self.__elevator_positions = elevator_positions
 		#self.__elevator_online = elevator_online
