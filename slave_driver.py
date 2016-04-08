@@ -17,10 +17,10 @@ class SlaveDriver:
 		self.__internal_queue_key = Lock()
 		self.__floor_panel_queue_key = Lock()
 		self.__elevator_queue = [[0 for button in range(0,3)] for floor in range(0,N_FLOORS)]
-		self.__master_queue = [0 for floor in range (0,N_FLOORS*2)]
-		self.__saved_master_queue = [0 for floor in range (0,N_FLOORS*2)]
-		self.__internal_queue = [0 for floor in range (0,N_FLOORS)]
-		self.__saved_internal_queue = [0 for floor in range (0,N_FLOORS)]
+		self.__master_queue = [0]*N_FLOORS*2
+		self.__saved_master_queue = [0]*N_FLOORS*2
+		self.__internal_queue = [0]*N_FLOORS
+		self.__saved_internal_queue = [0]*N_FLOORS
 		self.__floor_panel_queue = []
 		self.__position = (0,0,DIRN_STOP)
 		self.__thread_run_elevator = Thread(target = self.__run_elevator, args = (),)
@@ -297,13 +297,13 @@ class SlaveDriver:
 							for floor in range(0,N_FLOORS):
 								if self.__saved_master_queue[floor] == MY_ID:
 									self.__elevator_queue[floor][BUTTON_CALL_UP]=1
-								else: # removing this makes it sooo sloooooooow
-									self.__elevator_queue[floor][BUTTON_CALL_UP]=0
+								#else: 
+								#	self.__elevator_queue[floor][BUTTON_CALL_UP]=0
 							for floor in range(N_FLOORS,N_FLOORS*2):
 								if self.__saved_master_queue[floor] == MY_ID:
 									self.__elevator_queue[floor-N_FLOORS][BUTTON_CALL_DOWN]=1
-								else: # removing this makes it sooo sloooooooow
-									self.__elevator_queue[floor-N_FLOORS][BUTTON_CALL_DOWN]=0
+								#else: 
+								#	self.__elevator_queue[floor-N_FLOORS][BUTTON_CALL_DOWN]=0
 				#print self.__master_queue
 				#print self.__saved_master_queue
 

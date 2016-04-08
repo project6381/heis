@@ -155,7 +155,6 @@ class MessageHandler:
 			downtime = time.time() + 0.5
 
 			while True:
-				#time.sleep(0.01)
 				#__buffering_master_messages_watchdog.PetWatchdog()
 
 				data, address = udp.recvfrom(1024)
@@ -192,7 +191,6 @@ class MessageHandler:
 
 			while True:
 				#__buffering_slave_messages_watchdog.PetWatchdog()
-				#time.sleep(0.01)
 				data, address = udp.recvfrom(1024)
 				message = self.__errorcheck(data)
 				if (message != last_message) or (downtime < time.time()):

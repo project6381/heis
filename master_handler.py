@@ -184,7 +184,6 @@ class MasterHandler:
 		
 			while True:
 				#__master_alive_message_handler_watchdog.PetWatchdog()
-				#time.sleep(0.01)
 				data, address = udp.recvfrom(1024)
 				message = self.__errorcheck(data)
 				if message is not None:
