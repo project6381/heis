@@ -1,6 +1,6 @@
 from elevator_interface import ElevatorInterface
 from panel_interface import PanelInterface
-from constants import N_FLOORS, DIRN_STOP, DIRN_UP, DIRN_DOWN, BUTTON_CALL_UP, BUTTON_CALL_DOWN, BUTTON_COMMAND, MY_ID
+from constants import N_FLOORS, DIRN_STOP, DIRN_UP, DIRN_DOWN, BUTTON_CALL_UP, BUTTON_CALL_DOWN, BUTTON_COMMAND, MY_ID, TICK
 from threading import Thread, Lock
 from thread import interrupt_main
 import time
@@ -31,20 +31,20 @@ class SlaveDriver:
 
 	def master_queue_elevator_run(self,master_queue):
 		with watchdogs.WatchdogTimer(1):
-			time.sleep(0.01)
+			time.sleep(TICK) #What is this?
 			with self.__master_queue_key:
 				self.__master_queue = master_queue[:]
 
 	def read_saved_master_queue(self):
 		with watchdogs.WatchdogTimer(1):
-			time.sleep(0.01)
+			time.sleep(TICK) #What is this?
 			with self.__master_queue_key:
 				return self.__saved_master_queue
 			
 
 	def pop_floor_panel_queue(self):
 		with watchdogs.WatchdogTimer(1):
-			time.sleep(0.01)
+			time.sleep(TICK) # What is this?
 			with self.__floor_panel_queue_key:
 				if self.__floor_panel_queue:
 					return self.__floor_panel_queue.pop(0)
@@ -161,7 +161,7 @@ class SlaveDriver:
 			direction = DIRN_STOP
 
 			while True:
-				time.sleep(0.01)
+				time.sleep(TICK)
 				__run_elevator_watchdog.PetWatchdog()
 				#print self.__elevator_queue
 				floor_max = 0
@@ -238,7 +238,7 @@ class SlaveDriver:
 			__build_queues_watchdog.StartWatchdog()
 
 			while True:
-				time.sleep(0.01)
+				time.sleep(TICK)
 				__build_queues_watchdog.PetWatchdog()
 
 				for floor in range (0,N_FLOORS):
@@ -320,7 +320,7 @@ class SlaveDriver:
 			__set_indicators_watchdog.StartWatchdog()
 
 			while True:
-				time.sleep(0.01)
+				time.sleep(TICK)
 				__set_indicators_watchdog.PetWatchdog()
 				
 				with self.__master_queue_key:

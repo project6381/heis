@@ -35,3 +35,6 @@ MASTER_TO_MASTER_PORT = 17854
 SLAVE_TO_SLAVE_PORT = 17855
 MASTER_BUTTON_ORDERS_PORT = 17856 
 
+#Delay constant for time.sleep() -- to facilitate tuning tickrate in all threads at the same time
+TICK = 0.01
+

@@ -1,6 +1,6 @@
 from slave_driver import SlaveDriver
 from message_handler import MessageHandler
-from constants import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, MY_ID, N_FLOORS
+from constants import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, MY_ID, N_FLOORS, TICK
 import time
 import sys
 import subprocess
@@ -23,7 +23,7 @@ def main():
 		#if slave_handler.check_slave_alive() == MY_ID:
 		#	active_slave = True
 		#try:
-
+			time.sleep(TICK*10)  # Why 0.1 instead of 0.01? typo?
 			position = slave_driver.read_position()
 
 			(floor,button) = slave_driver.pop_floor_panel_queue()
@@ -82,7 +82,7 @@ def main():
 
 			print floor_up + floor_down + ['pikk']
 			message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
-			time.sleep(0.1)
+			
 
 		#except KeyboardInterrupt:
 		#	pass

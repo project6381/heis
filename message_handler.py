@@ -1,7 +1,7 @@
 from socket import *
 from threading import Thread, Lock
 import time
-from constants import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID
+from constants import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID, TICK
 import watchdogs
 from thread import interrupt_main
 
@@ -63,7 +63,7 @@ class MessageHandler:
 			
 			for _ in range(0,3):
 				self.__send(message,MASTER_TO_SLAVE_PORT)
-				time.sleep(0.001)
+				time.sleep(0.001) # why?
 
 
 	def receive_from_master(self):

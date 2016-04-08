@@ -1,6 +1,6 @@
 from master_handler import MasterHandler
 from message_handler import MessageHandler
-from constants import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, DIRN_DOWN, DIRN_UP, DIRN_STOP, N_ELEVATORS, MY_ID
+from constants import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, DIRN_DOWN, DIRN_UP, DIRN_STOP, N_ELEVATORS, MY_ID, TICK
 import time
 from collections import Counter
 import sys
@@ -16,6 +16,8 @@ def main():
 
 	while True:
 		#try:
+			time.sleep(TICK)
+
 			master_handler.update_master_alive(MY_ID)
 
 			if master_handler.check_master_alive() == MY_ID:
@@ -28,10 +30,9 @@ def main():
 
 			print "I am NOT master, my id is: " + str(MY_ID)
 			#print elevator_online
-			time.sleep(0.02)
-
+			
 			while active_master:
-
+				time.sleep(TICK)
 				#print "I AM master, my id is: " + str(my_id)
 				
 				master_handler.update_master_alive(MY_ID)
@@ -60,7 +61,6 @@ def main():
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
 
-				time.sleep(0.02)
 
 		
 		#except KeyboardInterrupt:
