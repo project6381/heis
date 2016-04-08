@@ -3,9 +3,12 @@ from socket import *
 from random import randint
 from threading import Thread, Lock
 import time 
+import watchdogs
+from thread import interrupt_main
+
+		
 
 class MasterHandler:
-
 
 	def __init__(self):
 		self.__elevator_positions = [ [0]*N_ELEVATORS ]*N_ELEVATORS
@@ -29,212 +32,226 @@ class MasterHandler:
 
 
 	def fetch_for_faen(self):
-		
-		return (self.__elevator_orders,self.__orders_id)
+		#with watchdogs.WatchdogTimer(1):
+			return (self.__elevator_orders,self.__orders_id)
 
 	def update_master_alive(self, elevator_id):
-		self.__send(str(elevator_id),MASTER_TO_MASTER_PORT)
+		#with watchdogs.WatchdogTimer(1):
+			self.__send(str(elevator_id),MASTER_TO_MASTER_PORT)
 
 	def update_elevator_position(self,slave_id,last_floor,next_floor,direction):
-
-		self.__elevator_positions[slave_id-1] = [last_floor,next_floor,direction] 
+		#with watchdogs.WatchdogTimer(1):
+			self.__elevator_positions[slave_id-1] = [last_floor,next_floor,direction] 
 				
 	def update_elevator_online(self,slave_id):
-		self.__elevator_online[slave_id-1] = 1
-		self.__downtime_elevator_online[slave_id-1] = time.time() + 1
+		#with watchdogs.WatchdogTimer(1):
+			self.__elevator_online[slave_id-1] = 1
+			self.__downtime_elevator_online[slave_id-1] = time.time() + 1
 		
 	def check_master_alive(self):	
+		#with watchdogs.WatchdogTimer(1):
+			if self.__master_alive_thread_started is not True:
+				self.__start(self.__thread_buffering_master_alive)
 
-		if self.__master_alive_thread_started is not True:
-			self.__start(self.__thread_buffering_master_alive)
-
-		for i in range(0,N_ELEVATORS):
-			if self.__active_masters[i] == 1:
-				return i+1
-		return -1 
+			for i in range(0,N_ELEVATORS):
+				if self.__active_masters[i] == 1:
+					return i+1
+			return -1 
 
 	def clear_completed_orders(self,direction,last_floor,next_floor):
-	
-		if last_floor == next_floor:
-			arrived = last_floor
-			if (direction == DIRN_UP) or (direction == DIRN_STOP):
-				self.__orders[arrived] = 0
-			if (direction == DIRN_DOWN) or (direction == DIRN_STOP):
-				self.__orders[arrived+4] = 0
+		#with watchdogs.WatchdogTimer(1):
+			if last_floor == next_floor:
+				arrived = last_floor
+				if (direction == DIRN_UP) or (direction == DIRN_STOP):
+					self.__orders[arrived] = 0
+				if (direction == DIRN_DOWN) or (direction == DIRN_STOP):
+					self.__orders[arrived+4] = 0
 
 
 	def add_new_orders(self,slave_floor_up,slave_floor_down):
+		#with watchdogs.WatchdogTimer(1):
+			for i in range(0,4):
+				if slave_floor_up[i] == 1: 
+					self.__orders[i] = 1
 
-		for i in range(0,4):
-			if slave_floor_up[i] == 1: 
-				self.__orders[i] = 1
-
-		for i in range(0,4):
-			if slave_floor_down[i] == 1: 
-				self.__orders[i+4] = 1	
+			for i in range(0,4):
+				if slave_floor_down[i] == 1: 
+					self.__orders[i+4] = 1	
 
 	def update_sync_state(self,orders_id,slave_id):
-					
-		if self.__orders_id == orders_id:
-			self.__synced_elevators[slave_id-1] = 1
+		#with watchdogs.WatchdogTimer(1):			
+			if self.__orders_id == orders_id:
+				self.__synced_elevators[slave_id-1] = 1
 
-		self.__elevator_online[slave_id-1] = 1
-		self.__downtime_elevator_online[slave_id-1] = time.time() + 1
-		active_slaves = self.__elevator_online.count(1)
-
-		
-		if (self.__orders != self.__last_button_orders) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_active_slaves == 1): # and (0 not in elevators_queue_id):
-			#print '1111111111111111111111111111111111'
-			self.__orders_id += 1
-			if self.__orders_id > 9999: 
-				self.__orders_id = 1
-			self.__last_button_orders = self.__orders[:]
-			self.__downtime_order_id = time.time() + 2
-			self.__timeout_active_slaves = 0
+			self.__elevator_online[slave_id-1] = 1
+			self.__downtime_elevator_online[slave_id-1] = time.time() + 1
+			active_slaves = self.__elevator_online.count(1)
 
 			
-		print self.__orders				
-		self.__assign_orders()
+			if (self.__orders != self.__last_button_orders) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_active_slaves == 1): # and (0 not in elevators_queue_id):
+				#print '1111111111111111111111111111111111'
+				self.__orders_id += 1
+				if self.__orders_id > 9999: 
+					self.__orders_id = 1
+				self.__last_button_orders = self.__orders[:]
+				self.__downtime_order_id = time.time() + 2
+				self.__timeout_active_slaves = 0
+
+				
+			print self.__orders				
+			self.__assign_orders()
 
 
 	def __assign_orders(self):
-		self.__button_orders = self.__last_button_orders # quick fix
-		#self.__elevator_positions = elevator_positions
-		#self.__elevator_online = elevator_online
+		#with watchdogs.WatchdogTimer(1):
+			self.__button_orders = self.__last_button_orders # quick fix
+			#self.__elevator_positions = elevator_positions
+			#self.__elevator_online = elevator_online
+						
+			# UP button calls
+			for floor in range(0,N_FLOORS):
+				if self.__button_orders[floor] == 0:
+					self.__elevator_orders[floor] = 0
+				if (self.__button_orders[floor] == 1) and ((self.__elevator_orders[floor] == 0) or (self.__elevator_online[self.__elevator_orders[floor]-1] == 0)):
+					elevator_priority = [0 for elevator in range(0,N_ELEVATORS)]
+					for elevator in range(0,N_ELEVATORS):
+						if self.__elevator_online[elevator] == 0:
+							elevator_priority[elevator] = 0
+						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
+							elevator_priority[elevator] = 19
+						elif (floor < N_FLOORS) and (self.__elevator_positions[elevator][LAST_FLOOR] < floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
+							elevator_priority[elevator] = 15 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor))					
+						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
+							elevator_priority[elevator] = 11 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor))
+						else:
+							elevator_priority[elevator] = 1 + randint(0,9)
+					#print ("Up button calls floor: %i" % floor)
+					#print elevator_priority
+					for elevator in range(0,N_ELEVATORS):
+						if elevator == 0:
+							if (self.__elevator_online[elevator] == 1):
+								self.__elevator_orders[floor] = elevator+1
+						elif (elevator_priority[elevator] > elevator_priority[elevator-1]) and (self.__elevator_online[elevator] == 1):
+							self.__elevator_orders[floor] = elevator+1
+
+
 					
-		# UP button calls
-		for floor in range(0,N_FLOORS):
-			if self.__button_orders[floor] == 0:
-				self.__elevator_orders[floor] = 0
-			if (self.__button_orders[floor] == 1) and ((self.__elevator_orders[floor] == 0) or (self.__elevator_online[self.__elevator_orders[floor]-1] == 0)):
-				elevator_priority = [0 for elevator in range(0,N_ELEVATORS)]
-				for elevator in range(0,N_ELEVATORS):
-					if self.__elevator_online[elevator] == 0:
-						elevator_priority[elevator] = 0
-					elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
-						elevator_priority[elevator] = 19
-					elif (floor < N_FLOORS) and (self.__elevator_positions[elevator][LAST_FLOOR] < floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
-						elevator_priority[elevator] = 15 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor))					
-					elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
-						elevator_priority[elevator] = 11 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor))
-					else:
-						elevator_priority[elevator] = 1 + randint(0,9)
-				#print ("Up button calls floor: %i" % floor)
-				#print elevator_priority
-				for elevator in range(0,N_ELEVATORS):
-					if elevator == 0:
-						if (self.__elevator_online[elevator] == 1):
+			# DOWN button calls
+			for floor in range(N_FLOORS,N_FLOORS*2):
+				if self.__button_orders[floor] == 0:
+					self.__elevator_orders[floor] = 0
+
+				if (self.__button_orders[floor] == 1) and  ((self.__elevator_orders[floor] == 0) or (self.__elevator_online[self.__elevator_orders[floor]-1] == 0)):
+					elevator_priority = [0 for elevator in range(0,N_ELEVATORS)]
+					for elevator in range(0,N_ELEVATORS):
+						if self.__elevator_online[elevator] == 0:
+							elevator_priority[elevator] = 0
+						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor-N_FLOORS) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor-N_FLOORS) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
+							elevator_priority[elevator] = 19
+						elif (floor-N_FLOORS > N_FLOORS) and (self.__elevator_positions[elevator][LAST_FLOOR] > floor-N_FLOORS) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
+							elevator_priority[elevator] = 15 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor+N_FLOORS))	
+						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
+							elevator_priority[elevator] = 11 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor+N_FLOORS))	
+						else:
+							elevator_priority[elevator] = 1 + randint(0,9)
+					#print ("Down button calls floor: %i" % (floor-N_FLOORS))
+					#print elevator_priority
+					for elevator in range(0,N_ELEVATORS):
+						if elevator == 0:
+							if (self.__elevator_online[elevator] == 1):
+								self.__elevator_orders[floor] = elevator+1
+						elif (elevator_priority[elevator] > elevator_priority[elevator-1]) and (self.__elevator_online[elevator] == 1):
 							self.__elevator_orders[floor] = elevator+1
-					elif (elevator_priority[elevator] > elevator_priority[elevator-1]) and (self.__elevator_online[elevator] == 1):
-						self.__elevator_orders[floor] = elevator+1
 
-
-				
-		# DOWN button calls
-		for floor in range(N_FLOORS,N_FLOORS*2):
-			if self.__button_orders[floor] == 0:
-				self.__elevator_orders[floor] = 0
-
-			if (self.__button_orders[floor] == 1) and  ((self.__elevator_orders[floor] == 0) or (self.__elevator_online[self.__elevator_orders[floor]-1] == 0)):
-				elevator_priority = [0 for elevator in range(0,N_ELEVATORS)]
-				for elevator in range(0,N_ELEVATORS):
-					if self.__elevator_online[elevator] == 0:
-						elevator_priority[elevator] = 0
-					elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor-N_FLOORS) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor-N_FLOORS) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
-						elevator_priority[elevator] = 19
-					elif (floor-N_FLOORS > N_FLOORS) and (self.__elevator_positions[elevator][LAST_FLOOR] > floor-N_FLOORS) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
-						elevator_priority[elevator] = 15 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor+N_FLOORS))	
-					elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
-						elevator_priority[elevator] = 11 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor+N_FLOORS))	
-					else:
-						elevator_priority[elevator] = 1 + randint(0,9)
-				#print ("Down button calls floor: %i" % (floor-N_FLOORS))
-				#print elevator_priority
-				for elevator in range(0,N_ELEVATORS):
-					if elevator == 0:
-						if (self.__elevator_online[elevator] == 1):
-							self.__elevator_orders[floor] = elevator+1
-					elif (elevator_priority[elevator] > elevator_priority[elevator-1]) and (self.__elevator_online[elevator] == 1):
-						self.__elevator_orders[floor] = elevator+1
-
-		#return self.__elevator_orders
+			#return self.__elevator_orders
 
 
 		
 	def __master_alive_message_handler(self):
+		#try:
+			#__master_alive_message_handler_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MasterHandler.__master_alive_message_handler_watchdog")
+			#__master_alive_message_handler_watchdog.StartWatchdog()
 
-		last_message = 'This message will never be heard'
-		self.__master_alive_thread_started = True
+			last_message = 'This message will never be heard'
+			self.__master_alive_thread_started = True
 
-		port = ('', MASTER_TO_MASTER_PORT)
-		udp = socket(AF_INET, SOCK_DGRAM)
-		udp.bind(port)
-		udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+			port = ('', MASTER_TO_MASTER_PORT)
+			udp = socket(AF_INET, SOCK_DGRAM)
+			udp.bind(port)
+			udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 
-		downtime = [time.time() + 3]*N_ELEVATORS
-	
-		while True:
-			data, address = udp.recvfrom(1024)
-			message = self.__errorcheck(data)
-			#print "Message: " + message
-			if message is not None:
-				with self.__active_masters_key:
-					self.__active_masters[int(message)-1] = 1		
-					downtime[int(message)-1] = time.time() + 3
-			
-			for i in range(0,N_ELEVATORS):
-				if downtime[i] < time.time():
-					self.__active_masters[i] = 0
-
-			
-
-			''' quick fix '''
-			for i in range(0,N_ELEVATORS):
-				if self.__downtime_elevator_online[i] < time.time():
-					self.__elevator_online[i] = 0
-
-
-			if self.__downtime_order_id < time.time():
+			downtime = [time.time() + 3]*N_ELEVATORS
+		
+			while True:
+				#__master_alive_message_handler_watchdog.PetWatchdog()
+				#time.sleep(0.01)
+				data, address = udp.recvfrom(1024)
+				message = self.__errorcheck(data)
+				if message is not None:
+					with self.__active_masters_key:
+						self.__active_masters[int(message)-1] = 1		
+						downtime[int(message)-1] = time.time() + 3
+				
 				for i in range(0,N_ELEVATORS):
-					self.__timeout_active_slaves = 1
+					if downtime[i] < time.time():
+						self.__active_masters[i] = 0
 
+				
+
+				''' quick fix '''
+				for i in range(0,N_ELEVATORS):
+					if self.__downtime_elevator_online[i] < time.time():
+						self.__elevator_online[i] = 0
+
+
+				if self.__downtime_order_id < time.time():
+					for i in range(0,N_ELEVATORS):
+						self.__timeout_active_slaves = 1
+
+		#except StandardError as error:
+		#	print error
+		#	print "MasterHandler.__master_alive_message_handler"
+		#	interrupt_main()
 
 
 	def __send(self, data, port):
-		send = ('<broadcast>', port)
-		udp = socket(AF_INET, SOCK_DGRAM)
-		udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-		message='<%s;%s>' % (str(len(data)), data)
-		udp.sendto(message, send)
-		udp.close()
+		#with watchdogs.WatchdogTimer(1):
+			send = ('<broadcast>', port)
+			udp = socket(AF_INET, SOCK_DGRAM)
+			udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+			message='<%s;%s>' % (str(len(data)), data)
+			udp.sendto(message, send)
+			udp.close()
 
 	def __start(self,thread):
-		thread.daemon = True # Terminate thread when "main" is finished
-		thread.start()
+		#with watchdogs.WatchdogTimer(1):
+			thread.daemon = True # Terminate thread when "main" is finished
+			thread.start()
 
 	def __errorcheck(self,data):
-		if data[0]=='<' and data[len(data)-1]=='>':
+		#with watchdogs.WatchdogTimer(1):
+			if data[0]=='<' and data[len(data)-1]=='>':
 
-			counter=1
-			separator=False
-			separator_pos=0
-			for char in data:
-				if char == ";" and separator==False:
-					separator_pos=counter
-					separator=True
-				counter+=1
+				counter=1
+				separator=False
+				separator_pos=0
+				for char in data:
+					if char == ";" and separator==False:
+						separator_pos=counter
+						separator=True
+					counter+=1
 
-			message_length=str(len(data)-separator_pos-1)
-			test_length=str()
-			for n in range(1,separator_pos-1):
-				test_length+=data[n]
+				message_length=str(len(data)-separator_pos-1)
+				test_length=str()
+				for n in range(1,separator_pos-1):
+					test_length+=data[n]
 
-			if test_length==message_length and separator==True:
-				message=str()
-				for n in range(separator_pos,len(data)-1):
-					message+=data[n]
-				return message
+				if test_length==message_length and separator==True:
+					message=str()
+					for n in range(separator_pos,len(data)-1):
+						message+=data[n]
+					return message
+				else:
+					return None
 			else:
 				return None
-		else:
-			return None

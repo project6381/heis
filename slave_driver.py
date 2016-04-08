@@ -230,7 +230,7 @@ class SlaveDriver:
 			print error
 			print "SlaveDriver.__run_elevator"
 			interrupt_main()
-			
+
 
 	def __build_queues(self):
 		try:
@@ -297,13 +297,13 @@ class SlaveDriver:
 							for floor in range(0,N_FLOORS):
 								if self.__saved_master_queue[floor] == MY_ID:
 									self.__elevator_queue[floor][BUTTON_CALL_UP]=1
-								#else:
-								#	self.__elevator_queue[floor][BUTTON_CALL_UP]=0
+								else: # removing this makes it sooo sloooooooow
+									self.__elevator_queue[floor][BUTTON_CALL_UP]=0
 							for floor in range(N_FLOORS,N_FLOORS*2):
 								if self.__saved_master_queue[floor] == MY_ID:
 									self.__elevator_queue[floor-N_FLOORS][BUTTON_CALL_DOWN]=1
-								#else:
-								#	self.__elevator_queue[floor-N_FLOORS][BUTTON_CALL_DOWN]=0
+								else: # removing this makes it sooo sloooooooow
+									self.__elevator_queue[floor-N_FLOORS][BUTTON_CALL_DOWN]=0
 				#print self.__master_queue
 				#print self.__saved_master_queue
 
