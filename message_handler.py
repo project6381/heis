@@ -1,7 +1,7 @@
 from socket import *
 from threading import Thread, Lock
 import time
-from constants import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID
+from constants import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID, N_FLOORS
 import watchdogs
 from thread import interrupt_main
 
@@ -23,7 +23,8 @@ class MessageHandler:
 								'direction': 0,
 								'orders_id': 0}
 
-		self.__master_message = {'orders': [0]*8,
+		self.__master_message = {'orders_up': [0]*4,
+								'orders_down': [0]*4,
 								'master_id': 0,
 								'orders_id': 0}
 
@@ -48,15 +49,18 @@ class MessageHandler:
 			self.__send(message,SLAVE_TO_MASTER_PORT)
 
 
-	def send_to_slave(self,orders,master_id,orders_id):
+	def send_to_slave(self,orders_up,orders_down,master_id,orders_id):
 		#with watchdogs.WatchdogTimer(1):
 			message = str()
 
 			master_id = str(master_id)
 			orders_id = str(orders_id)
 			
-			for order in orders:
+			for order in orders_up:
 				message += str(order)
+
+			for order in orders_down:
+				message += str(order)	
 
 			message += master_id
 			message += orders_id
@@ -72,8 +76,11 @@ class MessageHandler:
 
 			if message is not None:
 
-				for i in range (0,8):
-					self.__master_message['orders'][i] = int(message[i])
+				for i in range (0,N_FLOORS):
+					self.__master_message['orders_up'][i] = int(message[i])
+
+				for i in range (0,N_FLOORS):
+					self.__master_message['orders_down'][i] = int(message[4+i])
 
 				self.__master_message['master_id'] = int(message[8])
 				self.__master_message['orders_id'] = int(message[9:])

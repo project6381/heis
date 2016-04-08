@@ -27,12 +27,9 @@ def main():
 					master_handler.update_elevator_online(slave_message['slave_id'])			
 
 			print "I am NOT master, my id is: " + str(MY_ID)
-			#print elevator_online
 			time.sleep(0.02)
 
 			while active_master:
-
-				#print "I AM master, my id is: " + str(my_id)
 				
 				master_handler.update_master_alive(MY_ID)
 				slave_message = message_handler.receive_from_slave()			
@@ -48,20 +45,14 @@ def main():
 					master_handler.update_sync_state(slave_message['orders_id'],slave_message['slave_id'])
 					
 
+				(orders_up,orders_down,orders_id) = master_handler.get_orders()			
 
-				(elevator_orders, orders_id) = master_handler.fetch_for_faen()
+				message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
 				
-				
-
-				message_handler.send_to_slave(elevator_orders,MY_ID,orders_id)
-				
-
-
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
 
 				time.sleep(0.02)
-
 		
 		#except KeyboardInterrupt:
 		#	pass

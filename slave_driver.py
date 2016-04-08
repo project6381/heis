@@ -15,18 +15,31 @@ class SlaveDriver:
 		self.__elevator_queue_key = Lock()
 		self.__master_queue_key = Lock()
 		self.__internal_queue_key = Lock()
-		self.__floor_panel_queue_key = Lock()
+		self.__floor_panel_key = Lock()
 		self.__elevator_queue = [[0 for button in range(0,3)] for floor in range(0,N_FLOORS)]
 		self.__master_queue = [0]*N_FLOORS*2
 		self.__saved_master_queue = [0]*N_FLOORS*2
 		self.__internal_queue = [0]*N_FLOORS
 		self.__saved_internal_queue = [0]*N_FLOORS
-		self.__floor_panel_queue = []
+		self.__floor_panel_up = [0]*4
+		self.__floor_panel_down = [0]*4
+		self.__last_master_id = 0
 		self.__position = (0,0,DIRN_STOP)
 		self.__thread_run_elevator = Thread(target = self.__run_elevator, args = (),)
 		self.__thread_build_queues = Thread(target = self.__build_queues, args = (),)
 		self.__thread_set_indicators = Thread(target = self.__set_indicators, args = (),)
 		self.__start()
+
+
+
+	
+	def changing_master(self,master_id):
+		with watchdogs.WatchdogTimer(1):
+			if self.__last_master_id !=  master_id:
+				self.__last_master_id = master_id
+				return True
+			else: 
+				return False
 
 
 	def master_queue_elevator_run(self,master_queue):
@@ -40,16 +53,20 @@ class SlaveDriver:
 			time.sleep(0.01)
 			with self.__master_queue_key:
 				return self.__saved_master_queue
-			
-
-	def pop_floor_panel_queue(self):
+	
+	def get_floor_panel(self):
 		with watchdogs.WatchdogTimer(1):
-			time.sleep(0.01)
-			with self.__floor_panel_queue_key:
-				if self.__floor_panel_queue:
-					return self.__floor_panel_queue.pop(0)
-				else:
-					return (None, None)
+			with self.__floor_panel_key:
+				return (self.__floor_panel_up[:],self.__floor_panel_down[:])		
+	
+	def clear_floor_panel(self,orders_up,orders_down):
+		with watchdogs.WatchdogTimer(1):
+			with self.__floor_panel_key:
+				for i in range (0,N_FLOORS):			
+					if (orders_up[i] != 0):
+						self.__floor_panel_up[i] = 0
+					if (orders_down[i] != 0):
+						self.__floor_panel_down[i] = 0
 
 
 	def read_position(self):
@@ -248,9 +265,12 @@ class SlaveDriver:
 						elif self.__panel_interface.get_button_signal(button,floor):
 							if button == BUTTON_COMMAND:
 								self.__internal_queue[floor]=1
-							elif (floor,button) not in self.__floor_panel_queue:
-								with self.__floor_panel_queue_key:
-									self.__floor_panel_queue.append((floor,button))
+							elif button == 0:
+								with self.__floor_panel_key:
+									self.__floor_panel_up[floor]=1
+							elif button == 1:
+								with self.__floor_panel_key:
+									self.__floor_panel_down[floor]=1
 
 					with self.__internal_queue_key:
 						if self.__internal_queue != self.__saved_internal_queue:
