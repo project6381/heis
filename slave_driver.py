@@ -1,7 +1,7 @@
 from elevator_interface import ElevatorInterface
 from panel_interface import PanelInterface
 from constants import DIRN_STOP, DIRN_UP, DIRN_DOWN, BUTTON_CALL_UP, BUTTON_CALL_DOWN, BUTTON_COMMAND, N_FLOORS
-from config_parameters import MY_ID
+from config_parameters import MY_ID, TICK
 from threading import Thread, Lock
 from thread import interrupt_main
 import time

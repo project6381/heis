@@ -1,7 +1,7 @@
 from slave_driver import SlaveDriver
 from message_handler import MessageHandler
 from constants import N_FLOORS
-from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, MY_ID
+from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, MY_ID, TICK
 import time
 import sys
 import subprocess

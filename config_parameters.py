@@ -1,6 +1,9 @@
 # Constants
 MY_ID = 2
 
+# System "tick" -- delay for time.sleep()
+TICK = 0.01
+
 # Number of elevators
 N_ELEVATORS = 3
 
