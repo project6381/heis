@@ -28,8 +28,8 @@ class MessageHandler:
 								'master_id': 0,
 								'orders_id': 0}
 
-		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages, args = (),)
-		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages, args = (),)
+		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages, args = (), name = "Buffering master thread")
+		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages, args = (),name = "Buffering slave thread")
 	
 
 	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction,orders_id):

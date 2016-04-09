@@ -21,7 +21,7 @@ class MasterHandler:
 		self.__elevator_online = [0]*N_ELEVATORS
 		self.__active_masters_key = Lock()
 		self.__master_alive_thread_started = False
-		self.__thread_buffering_master_alive = Thread(target = self.__master_alive_message_handler, args = (),)
+		self.__thread_buffering_master_alive = Thread(target = self.__master_alive_message_handler, args = (),name = "Buffering master alive thread")
 
 		self.__orders_up = [0]*N_FLOORS
 		self.__orders_down = [0]*N_FLOORS

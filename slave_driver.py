@@ -25,12 +25,10 @@ class SlaveDriver:
 		self.__floor_panel_down = [0]*4
 		self.__last_master_id = 0
 		self.__position = (0,0,DIRN_STOP)
-		self.__thread_run_elevator = Thread(target = self.__run_elevator, args = (),)
-		self.__thread_build_queues = Thread(target = self.__build_queues, args = (),)
-		self.__thread_set_indicators = Thread(target = self.__set_indicators, args = (),)
+		self.__thread_run_elevator = Thread(target = self.__run_elevator, args = (), name = "Run elevator thread")
+		self.__thread_build_queues = Thread(target = self.__build_queues, args = (),name = "Build queues thread")
+		self.__thread_set_indicators = Thread(target = self.__set_indicators, args = (),name = "Set indicators thread")
 		self.__start()
-
-
 
 	
 	def changing_master(self,master_id):
