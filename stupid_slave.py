@@ -44,13 +44,13 @@ def main():
 						changing_master = False
 
 				else:
-					print master_message['orders_up'][:] + master_message['orders_down'][:]
+					#print master_message['orders_up'][:] + master_message['orders_down'][:]
 
 					slave_driver.master_queue_elevator_run(master_message['orders_up'][:] + master_message['orders_down'][:])	
 
 			(floor_up,floor_down) = slave_driver.get_floor_panel()
 
-			print floor_up + floor_down + ['pikk']
+			#print floor_up + floor_down + ['pikk']
 
 			message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
 			time.sleep(0.1)

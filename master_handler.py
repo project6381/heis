@@ -11,7 +11,7 @@ from thread import interrupt_main
 class MasterHandler:
 
 	def __init__(self):
-		self.__elevator_positions = [ [0]*N_ELEVATORS ]*N_ELEVATORS
+		self.__elevator_positions = [ [0]*3 ]*N_ELEVATORS
 		self.__button_orders = [0]*N_FLOORS*2
 		self.__elevator_orders = [0]*N_FLOORS*2
 		self.__elevator_orders_up = [0]*N_FLOORS
