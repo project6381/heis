@@ -1,6 +1,7 @@
 from master_handler import MasterHandler
 from message_handler import MessageHandler
-from constants import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, DIRN_DOWN, DIRN_UP, DIRN_STOP, N_ELEVATORS, MY_ID
+from constants import DIRN_DOWN, DIRN_UP, DIRN_STOP
+from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, N_ELEVATORS, MY_ID
 import time
 from collections import Counter
 import sys
