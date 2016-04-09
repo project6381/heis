@@ -1,7 +1,8 @@
 from socket import *
 from threading import Thread, Lock
 import time
-from constants import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID, TICK, N_FLOORS
+from constants import N_FLOORS
+from config_parameters import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID
 import watchdogs
 from thread import interrupt_main
 

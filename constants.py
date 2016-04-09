@@ -1,6 +1,3 @@
-# Constants
-MY_ID = 2
-
 # elev_motor_direction
 DIRN_DOWN = 0
 DIRN_STOP = 1
@@ -17,9 +14,6 @@ N_FLOORS = 4
 # Number of buttons (and corresponding lamps) on a per-floor basis
 N_BUTTONS = 3
 
-# Number of elevators
-N_ELEVATORS = 3
-
 # Elevator position
 LAST_FLOOR = 0
 NEXT_FLOOR = 1
@@ -27,14 +21,4 @@ DIRECTION = 2
 
 # MOTOR_SPEED
 MOTOR_SPEED = 2800
-
-#PORTS
-MASTER_TO_SLAVE_PORT = 17852
-SLAVE_TO_MASTER_PORT = 17853
-MASTER_TO_MASTER_PORT = 17854
-SLAVE_TO_SLAVE_PORT = 17855
-MASTER_BUTTON_ORDERS_PORT = 17856 
-
-#Delay constant for time.sleep() -- to facilitate tuning tickrate in all threads at the same time
-TICK = 0.01
 
