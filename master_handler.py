@@ -1,4 +1,4 @@
-from constants import N_FLOORS, LAST_FLOOR, NEXT_FLOOR, DIRECTION, DIRN_STOP, DIRN_DOWN, DIRN_UP
+from ported_driver.constants import N_FLOORS, LAST_FLOOR, NEXT_FLOOR, DIRECTION, DIRN_STOP, DIRN_DOWN, DIRN_UP
 from config_parameters import MASTER_TO_MASTER_PORT, MASTER_BUTTON_ORDERS_PORT, N_ELEVATORS
 from socket import *
 from random import randint
