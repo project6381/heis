@@ -21,19 +21,21 @@ class MasterHandler:
 		self.__elevator_online = [0]*N_ELEVATORS
 		self.__active_masters_key = Lock()
 		self.__master_alive_thread_started = False
-		self.__thread_buffering_master_alive = Thread(target = self.__master_alive_message_handler, args = (),)
+		self.__thread_buffering_master_alive = Thread(target = self.__master_alive_message_handler, args = (),name = "Buffering master alive thread")
 
-		self.__orders = [0]*N_FLOORS*2
-		self.__last_button_orders = [0]*N_FLOORS*2
+		self.__orders_up = [0]*N_FLOORS
+		self.__orders_down = [0]*N_FLOORS
+		self.__last_orders_up = [0]*N_FLOORS
+		self.__last_orders_down = [0]*N_FLOORS
 
 		self.__downtime_order_id = time.time() + 2
 		self.__downtime_elevator_online = [time.time() + 3]*N_ELEVATORS
 		self.__timeout_active_slaves = 0
 
 
-	def fetch_for_faen(self):
+	def get_orders(self):
 		#with watchdogs.WatchdogTimer(1):
-			return (self.__elevator_orders,self.__orders_id)
+			return (self.__elevator_orders[0:4],self.__elevator_orders[4:8],self.__orders_id)
 
 	def update_master_alive(self, elevator_id):
 		#with watchdogs.WatchdogTimer(1):
@@ -63,20 +65,20 @@ class MasterHandler:
 			if last_floor == next_floor:
 				arrived = last_floor
 				if (direction == DIRN_UP) or (direction == DIRN_STOP):
-					self.__orders[arrived] = 0
+					self.__orders_up[arrived] = 0
 				if (direction == DIRN_DOWN) or (direction == DIRN_STOP):
-					self.__orders[arrived+4] = 0
+					self.__orders_down[arrived] = 0
 
 
 	def add_new_orders(self,slave_floor_up,slave_floor_down):
 		#with watchdogs.WatchdogTimer(1):
-			for i in range(0,4):
+			for i in range(0,N_FLOORS):
 				if slave_floor_up[i] == 1: 
-					self.__orders[i] = 1
+					self.__orders_up[i] = 1
 
-			for i in range(0,4):
+			for i in range(0,N_FLOORS):
 				if slave_floor_down[i] == 1: 
-					self.__orders[i+4] = 1	
+					self.__orders_down[i] = 1	
 
 	def update_sync_state(self,orders_id,slave_id):
 		#with watchdogs.WatchdogTimer(1):			
@@ -88,23 +90,24 @@ class MasterHandler:
 			active_slaves = self.__elevator_online.count(1)
 
 			
-			if (self.__orders != self.__last_button_orders) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_active_slaves == 1): # and (0 not in elevators_queue_id):
+			if ( (self.__orders_up != self.__last_orders_up) or (self.__orders_down != self.__last_orders_down) ) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_active_slaves == 1): # and (0 not in elevators_queue_id):
 				#print '1111111111111111111111111111111111'
 				self.__orders_id += 1
 				if self.__orders_id > 9999: 
 					self.__orders_id = 1
-				self.__last_button_orders = self.__orders[:]
+				self.__last_orders_up = self.__orders_up[:]
+				self.__last_orders_down = self.__orders_down[:]
 				self.__downtime_order_id = time.time() + 2
 				self.__timeout_active_slaves = 0
 
 				
-			print self.__orders				
+			print self.__orders_up + self.__orders_down				
 			self.__assign_orders()
 
 
 	def __assign_orders(self):
 		#with watchdogs.WatchdogTimer(1):
-			self.__button_orders = self.__last_button_orders # quick fix
+			self.__button_orders = self.__last_orders_up[:] + self.__last_orders_down[:] # quick fix
 			#self.__elevator_positions = elevator_positions
 			#self.__elevator_online = elevator_online
 						

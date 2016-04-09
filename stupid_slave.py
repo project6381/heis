@@ -11,51 +11,22 @@ def main():
 	#instantiating classes
 	message_handler = MessageHandler()
 	slave_driver = SlaveDriver()
-	is_master = False
-	floor_up = [0]*4
-	floor_down = [0]*4
-	changing_master = False
-	last_master_id = 0
 	orders_id = 0
 
 	while True:
-
-		#if slave_handler.check_slave_alive() == MY_ID:
-		#	active_slave = True
 		#try:
 			time.sleep(TICK) 
 			position = slave_driver.read_position()
 
-			(floor,button) = slave_driver.pop_floor_panel_queue()
-			if floor is not None:
-				if button == 0:
-					floor_up[floor] = 1
-				elif button == 1: 
-					floor_down[floor] = 1 	
-
-
 			master_message = message_handler.receive_from_master()
+			
 			if master_message is not None:	
 
-				for i in range (0,4):
-					if (master_message['orders'][i] != 0):
-						floor_up[i] = 0
-
-					if (master_message['orders'][4+i] != 0):
-						floor_down[i] = 0
-				
-
+				slave_driver.clear_floor_panel(master_message['orders_up'][:],master_message['orders_down'][:])
 						
 				orders_id = master_message['orders_id']
-				master_queue = master_message['orders'][:]
-
-				#if master_message['master_id'] == MY_ID:
-				#	is_master = True
-
-				if last_master_id !=  master_message['master_id']: 
-					changing_master = True
 				
-				if changing_master:	
+				if slave_driver.changing_master(master_message['master_id']):	
 					
 					my_master_queue = slave_driver.read_saved_master_queue()
 					print "CHANGING MASTER STATE = TRUE -> my_master_queue: " + str(my_master_queue)
@@ -64,23 +35,23 @@ def main():
 							my_master_queue[i]=1
 					message_handler.send_to_master(my_master_queue[0:4],my_master_queue[4:8],MY_ID,position[0],position[1],position[2],master_message['orders_id'])
 					orders_ok = True
+					
 					for order in range(0,N_FLOORS):
-						if ((my_master_queue[order] > 0) and (master_message['orders'][order] == 0)):
+						if ( (my_master_queue[order] > 0) and (master_message['orders_up'][order] == 0) ) and ( (my_master_queue[4+order] > 0) and (master_message['orders_down'][order]) ):
 							orders_ok = False 
 					if orders_ok: 
-						is_master = False 
+						#is_master = False 
 						changing_master = False
 
 				else:
-					print master_queue
-					slave_driver.master_queue_elevator_run(master_queue)
+					print master_message['orders_up'][:] + master_message['orders_down'][:]
 
-				#print ['floor_up:'] + master_message['master_floor_up'] + ['floor_down:'] + master_message['master_floor_down'] 
-				#print master_message['orders_id']
+					slave_driver.master_queue_elevator_run(master_message['orders_up'][:] + master_message['orders_down'][:])	
 
-				last_master_id = master_message['master_id']
+			(floor_up,floor_down) = slave_driver.get_floor_panel()
 
 			print floor_up + floor_down + ['pikk']
+
 			message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
 			
 
