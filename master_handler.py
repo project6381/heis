@@ -124,9 +124,11 @@ class MasterHandler:
 						if self.__elevator_online[elevator] == 0:
 							elevator_priority_up[elevator] = 0
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP)):
-							elevator_priority_up[elevator] = 4 + N_FLOORS*4
+							elevator_priority_up[elevator] = 5 + N_FLOORS*5
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] < floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
-							elevator_priority_up[elevator] = 3 + N_FLOORS*3 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))					
+							elevator_priority_up[elevator] = 4 + N_FLOORS*4 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
+						elif (floor == 0) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
+							elevator_priority_up[elevator] = 3 + N_FLOORS*3 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
 						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
 							elevator_priority_up[elevator] = 2 + N_FLOORS*2 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
 						else:
@@ -150,8 +152,10 @@ class MasterHandler:
 						if self.__elevator_online[elevator] == 0:
 							elevator_priority_down[elevator] = 0
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
-							elevator_priority_down[elevator] = 4 + N_FLOORS*4
+							elevator_priority_down[elevator] = 5 + N_FLOORS*5
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] > floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
+							elevator_priority_down[elevator] = 4 + N_FLOORS*4 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
+						elif (floor == N_FLOORS-1) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
 							elevator_priority_down[elevator] = 3 + N_FLOORS*3 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))	
 						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
 							elevator_priority_down[elevator] = 2 + N_FLOORS*2 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))	
