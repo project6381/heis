@@ -23,7 +23,7 @@ def main():
 		#if slave_handler.check_slave_alive() == MY_ID:
 		#	active_slave = True
 		#try:
-			time.sleep(TICK*10)  # Why 0.1 instead of 0.01? typo?
+			time.sleep(TICK) 
 			position = slave_driver.read_position()
 
 			(floor,button) = slave_driver.pop_floor_panel_queue()
