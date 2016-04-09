@@ -1,6 +1,6 @@
-from ported_drivers.elevator_interface import ElevatorInterface
-from ported_drivers.panel_interface import PanelInterface
-from ported_drivers.constants import DIRN_STOP, DIRN_UP, DIRN_DOWN, BUTTON_CALL_UP, BUTTON_CALL_DOWN, BUTTON_COMMAND, N_FLOORS
+from ported_driver.elevator_interface import ElevatorInterface
+from ported_driver.panel_interface import PanelInterface
+from ported_driver.constants import DIRN_STOP, DIRN_UP, DIRN_DOWN, BUTTON_CALL_UP, BUTTON_CALL_DOWN, BUTTON_COMMAND, N_FLOORS
 from config_parameters import MY_ID
 from threading import Thread, Lock
 from thread import interrupt_main

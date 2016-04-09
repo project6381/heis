@@ -1,6 +1,6 @@
 from master_handler import MasterHandler
 from message_handler import MessageHandler
-from ported_drivers.constants import DIRN_DOWN, DIRN_UP, DIRN_STOP
+from ported_driver.constants import DIRN_DOWN, DIRN_UP, DIRN_STOP
 from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, N_ELEVATORS, MY_ID
 import time
 from collections import Counter
