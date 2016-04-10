@@ -14,13 +14,17 @@ def main():
 	slave_driver = SlaveDriver()
 	orders_id = 0
 	downtime = time.time()+0.2
+	downtime_1 = time.time()+0.2
 
 	while True:
 		#try:
 
 			position = slave_driver.read_position()
 
-			master_message = message_handler.receive_from_master()
+			if downtime_1 < time.time()
+				master_message = message_handler.receive_from_master()
+				downtime_1 = time.time()+2
+
 			
 			if master_message is not None:	
 
@@ -57,7 +61,7 @@ def main():
 
 			if downtime < time.time():
 				message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
-				downtime = time.time() + 0.2
+				downtime = time.time()
 
 			time.sleep(0.1)
 
