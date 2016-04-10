@@ -102,7 +102,7 @@ class MasterHandler:
 				self.__timeout_active_slaves = 0
 
 				
-			print self.__orders_up + self.__orders_down				
+			#print self.__orders_up + self.__orders_down				
 			self.__assign_orders()
 
 

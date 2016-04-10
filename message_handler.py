@@ -48,8 +48,9 @@ class MessageHandler:
 
 			message = "%s%s%i%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction,orders_id)
 			self.__send(message,SLAVE_TO_MASTER_PORT)
-			
+
 			print "send_to_master"
+			print time.time()
 
 			time.sleep(0.001)
 
@@ -73,8 +74,6 @@ class MessageHandler:
 			self.__send(message,MASTER_TO_SLAVE_PORT)
 
 			print "send_to_slave"
-
-			time.sleep(0.001)
 			
 
 
@@ -115,6 +114,7 @@ class MessageHandler:
 				self.__slave_message['orders_id'] = int(message[12:])
 
 				print "receive_from_slave"
+				print time.time()
 
 				return self.__slave_message
 
@@ -127,6 +127,7 @@ class MessageHandler:
 			message='<%s;%s>' % (str(len(data)), data)
 			udp.sendto(message, send)
 			udp.close()
+
 
 
 	def __read_message(self,port):

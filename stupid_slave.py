@@ -13,19 +13,17 @@ def main():
 	message_handler = MessageHandler()
 	slave_driver = SlaveDriver()
 	orders_id = 0
-	downtime = time.time()+0.2
-	downtime_1 = time.time()
+	downtime_send = time.time()
+	downtime_receive = time.time()
 
 	while True:
 		#try:
 
 			position = slave_driver.read_position()
 
-
-			if downtime_1 < time.time():
+			if downtime_receive < time.time():
 				master_message = message_handler.receive_from_master()
-				downtime_1 = time.time()+2
-
+				downtime_receive = time.time() + 0.75
 			
 			if master_message is not None:	
 
@@ -51,18 +49,17 @@ def main():
 						changing_master = False
 
 				else:
-					#print master_message['orders_up'][:] + master_message['orders_down'][:]
+					#print master_message['orders_up'][:] + master_message['orders_down'][:] + ["order up + orders_down"]
 
 					slave_driver.master_queue_elevator_run(master_message['orders_up'][:] + master_message['orders_down'][:])	
 
 			(floor_up,floor_down) = slave_driver.get_floor_panel()
 
 			#print floor_up + floor_down + ['floor_up + floor_down']
-			print "while True cycle"
-
-			if downtime < time.time():
+			
+			if downtime_send < time.time():
 				message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
-				downtime = time.time()
+				downtime_send = time.time() + 0.2
 
 			time.sleep(0.1)
 

@@ -14,7 +14,8 @@ def main():
 	message_handler = MessageHandler()
 	master_handler = MasterHandler()
 	active_master = False
-	downtime = time.time()
+	downtime_send = time.time()
+	downtime_receive = time.time()
 
 	while True:
 		#try:
@@ -34,7 +35,13 @@ def main():
 			while active_master:
 				
 				master_handler.update_master_alive(MY_ID)
-				slave_message = message_handler.receive_from_slave()			
+
+				if downtime_receive < time.time():
+					slave_message = message_handler.receive_from_slave()
+					downtime_receive = time.time() + 0.75
+
+				#slave_message = message_handler.receive_from_slave()
+
 				if slave_message is not None:
 				
 					
@@ -49,9 +56,9 @@ def main():
 
 				(orders_up,orders_down,orders_id) = master_handler.get_orders()
 
-				if downtime < time.time():	
+				if downtime_send < time.time():	
 					message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
-					downtime = time.time() + 0.05
+					downtime_send = time.time() + 0.1
 				
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
