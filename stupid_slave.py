@@ -59,7 +59,7 @@ def main():
 			
 			if downtime_send < time.time():
 				message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
-				downtime_send = time.time() + 0.2
+				downtime_send = time.time() + 0.3
 
 			time.sleep(0.1)
 

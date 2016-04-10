@@ -49,8 +49,7 @@ class MessageHandler:
 			message = "%s%s%i%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction,orders_id)
 			self.__send(message,SLAVE_TO_MASTER_PORT)
 
-			print "send_to_master"
-			print time.time()
+			print "send_to_master: " + str(time.time())
 
 			time.sleep(0.001)
 
@@ -113,8 +112,7 @@ class MessageHandler:
 				self.__slave_message['direction'] = int(message[11])
 				self.__slave_message['orders_id'] = int(message[12:])
 
-				print "receive_from_slave"
-				print time.time()
+				print "receive_from_slave: " + str(time.time())
 
 				return self.__slave_message
 
