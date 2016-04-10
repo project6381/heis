@@ -14,14 +14,15 @@ def main():
 	slave_driver = SlaveDriver()
 	orders_id = 0
 	downtime = time.time()+0.2
-	downtime_1 = time.time()+0.2
+	downtime_1 = time.time()
 
 	while True:
 		#try:
 
 			position = slave_driver.read_position()
 
-			if downtime_1 < time.time()
+
+			if downtime_1 < time.time():
 				master_message = message_handler.receive_from_master()
 				downtime_1 = time.time()+2
 
