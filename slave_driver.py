@@ -85,6 +85,7 @@ class SlaveDriver:
 					self.__thread_build_queues.start()
 					self.__thread_set_indicators.daemon = True
 					self.__thread_set_indicators.start()
+			
 			except watchdogs.WatchdogTimer:
 				print "watchdog error"
 				print "SlaveDriver.__start"

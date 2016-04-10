@@ -14,6 +14,7 @@ def main():
 	message_handler = MessageHandler()
 	master_handler = MasterHandler()
 	active_master = False
+	downtime = time.time()
 
 	while True:
 		#try:
@@ -46,9 +47,11 @@ def main():
 					master_handler.update_sync_state(slave_message['orders_id'],slave_message['slave_id'])
 					
 
-				(orders_up,orders_down,orders_id) = master_handler.get_orders()			
+				(orders_up,orders_down,orders_id) = master_handler.get_orders()
 
-				message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
+				if downtime < time.time():	
+					message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
+					downtime = time.time() + 0.05
 				
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
