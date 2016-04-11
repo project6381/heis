@@ -8,7 +8,9 @@ import subprocess
 
 
 def main():
+
 	time.sleep(4)
+
 	#instantiating classes
 	message_handler = MessageHandler()
 	slave_driver = SlaveDriver()
@@ -45,17 +47,14 @@ def main():
 						changing_master = False
 
 				else:
-					#print master_message['orders_up'][:] + master_message['orders_down'][:] + ["order up + orders_down"]
-
 					slave_driver.master_queue_elevator_run(master_message['orders_up'][:] + master_message['orders_down'][:])	
 
 			(floor_up,floor_down) = slave_driver.get_floor_panel()
-
-			print floor_up + floor_down + ['floor_up + floor_down']
 			
 			if downtime_send < time.time():
 				message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
 				downtime_send = time.time() + 0.1
+
 
 			time.sleep(0.01)
 

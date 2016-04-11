@@ -12,11 +12,11 @@ from thread import interrupt_main
 class MasterHandler:
 
 	def __init__(self):
-		#self.__elevator_positions = [ [0 for position in range(0,3)] ]*N_ELEVATORS
-		self.__elevator_positions = [[0 for position in range(0,3)] for elevator in range(0,N_ELEVATORS)]
-		self.__button_orders = [0 for floor in range(0,N_FLOORS*2)]
-		self.__elevator_orders = [0 for floor in range(0,N_FLOORS*2)]
 
+		self.__elevator_positions = [[0 for position in range(0,3)] for elevator in range(0,N_ELEVATORS)]
+		self.__elevator_orders_up = [0 for floor in range(0,N_FLOORS)]
+		self.__elevator_orders_down = [0 for floor in range(0,N_FLOORS)]
+		
 		self.__active_masters = [0 for elevator in range(0,N_ELEVATORS)]
 		self.__orders_id = 1
 		self.__synced_elevators = [0 for elevator in range(0,N_ELEVATORS)]
@@ -38,7 +38,7 @@ class MasterHandler:
 
 	def get_orders(self):
 		#with watchdogs.WatchdogTimer(1):
-			return (self.__elevator_orders[0:4],self.__elevator_orders[4:8],self.__orders_id)
+			return (self.__elevator_orders_up,self.__elevator_orders_down,self.__orders_id)
 
 	def update_master_alive(self, elevator_id):
 		#with watchdogs.WatchdogTimer(1):
@@ -109,66 +109,68 @@ class MasterHandler:
 
 	def __assign_orders(self):
 		#with watchdogs.WatchdogTimer(1):
-			self.__button_orders = self.__last_orders_up[:] + self.__last_orders_down[:] # quick fix
 			#self.__elevator_positions = elevator_positions
 			#self.__elevator_online = elevator_online
 						
-			# UP button calls
+			###### ASSIGNS ORDERS TO ELEVATORS ######
 			for floor in range(0,N_FLOORS):
-				if self.__button_orders[floor] == 0:
-					self.__elevator_orders[floor] = 0
-				if (self.__button_orders[floor] == 1) and ((self.__elevator_orders[floor] == 0) or (self.__elevator_online[self.__elevator_orders[floor]-1] == 0)):
-					elevator_priority = [0 for elevator in range(0,N_ELEVATORS)]
+				###### UP ORDERS #######
+				if self.__last_orders_up[floor] == 0:
+					self.__elevator_orders_up[floor] = 0
+
+				if (self.__last_orders_up[floor] == 1) and ((self.__elevator_orders_up[floor] == 0) or (self.__elevator_online[self.__elevator_orders_up[floor]-1] == 0)):
+					###### GIVES ALL ELEVATORS A PRIORITY NUMBER ACCORDING TOO POSITION ######
+					elevator_priority_up = [0]*N_ELEVATORS
 					for elevator in range(0,N_ELEVATORS):
 						if self.__elevator_online[elevator] == 0:
-							elevator_priority[elevator] = 0
-						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
-							elevator_priority[elevator] = 19
-						elif (floor < N_FLOORS) and (self.__elevator_positions[elevator][LAST_FLOOR] < floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
-							elevator_priority[elevator] = 15 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor))					
+							elevator_priority_up[elevator] = 0
+						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP)):
+							elevator_priority_up[elevator] = 5 + N_FLOORS*5
+						elif (self.__elevator_positions[elevator][LAST_FLOOR] < floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
+							elevator_priority_up[elevator] = 4 + N_FLOORS*4 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
+						elif (floor == 0) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
+							elevator_priority_up[elevator] = 3 + N_FLOORS*3 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
 						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
-							elevator_priority[elevator] = 11 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor))
+							elevator_priority_up[elevator] = 2 + N_FLOORS*2 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
 						else:
-							elevator_priority[elevator] = 1 + randint(0,9)
-					#print ("Up button calls floor: %i" % floor)
-					#print elevator_priority
+							elevator_priority_up[elevator] = 1 + randint(0,N_FLOORS)
+
+					###### GIVES THE ORDER TO THE ELEVATOR WITH HIGHEST PRIORITY NUMBER ######
 					for elevator in range(0,N_ELEVATORS):
 						if elevator == 0:
 							if (self.__elevator_online[elevator] == 1):
-								self.__elevator_orders[floor] = elevator+1
-						elif (elevator_priority[elevator] > elevator_priority[elevator-1]) and (self.__elevator_online[elevator] == 1):
-							self.__elevator_orders[floor] = elevator+1
-
-
+								self.__elevator_orders_up[floor] = elevator + 1
+						elif (elevator_priority_up[elevator] > elevator_priority_up[elevator-1]) and (self.__elevator_online[elevator] == 1):
+							self.__elevator_orders_up[floor] = elevator + 1
 					
-			# DOWN button calls
-			for floor in range(N_FLOORS,N_FLOORS*2):
-				if self.__button_orders[floor] == 0:
-					self.__elevator_orders[floor] = 0
+				###### DOWN ORDERS ######
+				if self.__last_orders_down[floor] == 0:
+					self.__elevator_orders_down[floor] = 0
 
-				if (self.__button_orders[floor] == 1) and  ((self.__elevator_orders[floor] == 0) or (self.__elevator_online[self.__elevator_orders[floor]-1] == 0)):
-					elevator_priority = [0 for elevator in range(0,N_ELEVATORS)]
+				if (self.__last_orders_down[floor] == 1) and  ((self.__elevator_orders_down[floor] == 0) or (self.__elevator_online[self.__elevator_orders_down[floor]-1] == 0)):
+					###### GIVES ALL ELEVATORS A PRIORITY NUMBER ACCORDING TOO POSITION ######
+					elevator_priority_down = [0]*N_ELEVATORS
 					for elevator in range(0,N_ELEVATORS):
 						if self.__elevator_online[elevator] == 0:
-							elevator_priority[elevator] = 0
-						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor-N_FLOORS) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor-N_FLOORS) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
-							elevator_priority[elevator] = 19
-						elif (floor-N_FLOORS > N_FLOORS) and (self.__elevator_positions[elevator][LAST_FLOOR] > floor-N_FLOORS) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
-							elevator_priority[elevator] = 15 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor+N_FLOORS))	
+							elevator_priority_down[elevator] = 0
+						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
+							elevator_priority_down[elevator] = 5 + N_FLOORS*5
+						elif (self.__elevator_positions[elevator][LAST_FLOOR] > floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
+							elevator_priority_down[elevator] = 4 + N_FLOORS*4 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
+						elif (floor == N_FLOORS-1) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
+							elevator_priority_down[elevator] = 3 + N_FLOORS*3 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))	
 						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
-							elevator_priority[elevator] = 11 + (3 - abs(self.__elevator_positions[elevator][LAST_FLOOR]-floor+N_FLOORS))	
+							elevator_priority_down[elevator] = 2 + N_FLOORS*2 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))	
 						else:
-							elevator_priority[elevator] = 1 + randint(0,9)
-					#print ("Down button calls floor: %i" % (floor-N_FLOORS))
-					#print elevator_priority
+							elevator_priority_down[elevator] = 1 + randint(0,N_FLOORS)
+
+					###### GIVES THE ORDER TO THE ELEVATOR WITH HIGHEST PRIORITY NUMBER ######
 					for elevator in range(0,N_ELEVATORS):
 						if elevator == 0:
 							if (self.__elevator_online[elevator] == 1):
-								self.__elevator_orders[floor] = elevator+1
-						elif (elevator_priority[elevator] > elevator_priority[elevator-1]) and (self.__elevator_online[elevator] == 1):
-							self.__elevator_orders[floor] = elevator+1
-
-			#return self.__elevator_orders
+								self.__elevator_orders_down[floor] = elevator + 1
+						elif (elevator_priority_down[elevator] > elevator_priority_down[elevator-1]) and (self.__elevator_online[elevator] == 1):
+							self.__elevator_orders_down[floor] = elevator + 1
 
 
 		
@@ -251,24 +253,29 @@ class MasterHandler:
 			thread.start()
 
 	def __errorcheck(self,data):
+		###### CHECKS THAT THE MESSAGE IS FOR THIS SYSTEM # WITHOUT OBVIOUS ERRORS ######
 		#with watchdogs.WatchdogTimer(1):
-			if data[0]=='<' and data[len(data)-1]=='>':
+			if (data[0] == '<') and (data[len(data) - 1] == '>'):
 
 				counter=1
 				separator=False
 				separator_pos=0
+
+				###### CHECKS FOR SEPERATOR BETWEEN MESSAGE LENGTH AND MESSAGE ######
 				for char in data:
-					if char == ";" and separator==False:
+					if (char == ";") and (separator==False):
 						separator_pos=counter
 						separator=True
 					counter+=1
 
-				message_length=str(len(data)-separator_pos-1)
-				test_length=str()
+				###### GETS MEASURED MESSAGE LENGTH AND WRITTEN MESSAGE LENGTH ######
+				measured_message_length = str(len(data) - separator_pos - 1)
+				written_message_length = str()
 				for n in range(1,separator_pos-1):
-					test_length+=data[n]
+					written_message_length+=data[n]
 
-				if test_length==message_length and separator==True:
+				###### CHECKS THAT THE WRITTEN AND MEASURED MESSAGE LENGTH IS THE SAME # RETURNS MESSAGE IF EVERYTHING IS OK ######
+				if (written_message_length == measured_message_length) and (separator == True):
 					message=str()
 					for n in range(separator_pos,len(data)-1):
 						message+=data[n]

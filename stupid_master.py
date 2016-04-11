@@ -8,7 +8,8 @@ import sys
 import subprocess
 
 def main():
-
+	
+	time.sleep(4)
 	#instantiating classes
 	message_handler = MessageHandler()
 	master_handler = MasterHandler()
