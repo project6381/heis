@@ -220,27 +220,28 @@ class MessageHandler:
 		#	interrupt_main()
 
 	def __errorcheck(self,data):
+		###### CHECKS THAT THE MESSAGE IS FOR THIS SYSTEM # WITHOUT OBVIOUS ERRORS ######
 		#with watchdogs.WatchdogTimer(1):
-			if data[0]=='<' and data[len(data)-1]=='>':
+			if data[0] == '<' and data[len(data) -1] == '>':
 
-				counter=1
-				separator=False
-				separator_pos=0
+				counter = 1
+				separator = False
+				separator_pos = 0
 				for char in data:
-					if char == ";" and separator==False:
-						separator_pos=counter
-						separator=True
-					counter+=1
+					if char == ";" and separator == False:
+						separator_pos = counter
+						separator = True
+					counter += 1
 
-				message_length=str(len(data)-separator_pos-1)
-				test_length=str()
-				for n in range(1,separator_pos-1):
-					test_length+=data[n]
+				message_length = str(len(data) - separator_pos - 1)
+				test_length = str()
+				for n in range(1, separator_pos - 1):
+					test_length += data[n]
 
-				if test_length==message_length and separator==True:
-					message=str()
-					for n in range(separator_pos,len(data)-1):
-						message+=data[n]
+				if test_length == message_length and separator == True:
+					message = str()
+					for n in range(separator_pos,len(data) - 1):
+						message += data[n]
 					return message
 				else:
 					return None

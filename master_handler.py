@@ -255,30 +255,26 @@ class MasterHandler:
 	def __errorcheck(self,data):
 		###### CHECKS THAT THE MESSAGE IS FOR THIS SYSTEM # WITHOUT OBVIOUS ERRORS ######
 		#with watchdogs.WatchdogTimer(1):
-			if (data[0] == '<') and (data[len(data) - 1] == '>'):
+			if data[0] == '<' and data[len(data) -1] == '>':
 
-				counter=1
-				separator=False
-				separator_pos=0
-
-				###### CHECKS FOR SEPERATOR BETWEEN MESSAGE LENGTH AND MESSAGE ######
+				counter = 1
+				separator = False
+				separator_pos = 0
 				for char in data:
-					if (char == ";") and (separator==False):
-						separator_pos=counter
-						separator=True
-					counter+=1
+					if char == ";" and separator == False:
+						separator_pos = counter
+						separator = True
+					counter += 1
 
-				###### GETS MEASURED MESSAGE LENGTH AND WRITTEN MESSAGE LENGTH ######
-				measured_message_length = str(len(data) - separator_pos - 1)
-				written_message_length = str()
-				for n in range(1,separator_pos-1):
-					written_message_length+=data[n]
+				message_length = str(len(data) - separator_pos - 1)
+				test_length = str()
+				for n in range(1, separator_pos - 1):
+					test_length += data[n]
 
-				###### CHECKS THAT THE WRITTEN AND MEASURED MESSAGE LENGTH IS THE SAME # RETURNS MESSAGE IF EVERYTHING IS OK ######
-				if (written_message_length == measured_message_length) and (separator == True):
-					message=str()
-					for n in range(separator_pos,len(data)-1):
-						message+=data[n]
+				if test_length == message_length and separator == True:
+					message = str()
+					for n in range(separator_pos,len(data) - 1):
+						message += data[n]
 					return message
 				else:
 					return None
