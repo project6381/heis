@@ -1,6 +1,6 @@
 from master_handler import MasterHandler
 from message_handler import MessageHandler
-from ported_driver.constants import DIRN_DOWN, DIRN_UP, DIRN_STOP
+from ported_driver.constants import DIRN_DOWN, DIRN_UP, DIRN_STOP, N_FLOORS
 from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, N_ELEVATORS, MY_ID
 import time
 from collections import Counter
@@ -8,13 +8,22 @@ import sys
 import subprocess
 
 def main():
+
 	
-	time.sleep(4)
 	#instantiating classes
 	message_handler = MessageHandler()
 	master_handler = MasterHandler()
 	downtime_send = time.time()
 	active_master = False
+	startup = True
+	startup_time = time.time() + 4
+	while startup:
+		print "startup"
+		time.sleep(0.1)
+		message_handler.send_to_slave([0 for floor in range(0,N_FLOORS)],[0 for floor in range(0,N_FLOORS)],N_ELEVATORS+1,0)
+		slave_message = message_handler.receive_from_slave()
+		if startup_time < time.time():
+			startup = False
 
 	while True:
 		#try:

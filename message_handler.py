@@ -56,6 +56,7 @@ class MessageHandler:
 
 			master_id = str(master_id)
 			orders_id = str(orders_id)
+			print str(orders_up) + str(orders_down)
 			
 			for order in orders_up:
 				message += str(order)
@@ -174,7 +175,8 @@ class MessageHandler:
 				if (message != last_message) or (downtime < time.time()):
 					if message is not None:
 						with self.__receive_buffer_master_key:
-							self.__receive_buffer_master.append(message)	
+							self.__receive_buffer_master.append(message)
+							#print self.__receive_buffer_master	
 					last_message = message
 					downtime = time.time() + 0.5
 
