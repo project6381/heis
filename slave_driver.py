@@ -17,6 +17,7 @@ class SlaveDriver:
 		self.__internal_orders_key = Lock()
 		self.__floor_panel_key = Lock()
 		self.__position_key = Lock()
+		self.__offline_mode_key = Lock()
 		self.__elevator_orders = [[0 for button in range(0,N_BUTTONS)] for floor in range(0,N_FLOORS)]
 		self.__master_orders_up = [0 for floor in range(0,N_FLOORS)]
 		self.__master_orders_down = [0 for floor in range(0,N_FLOORS)]
@@ -27,11 +28,12 @@ class SlaveDriver:
 		self.__floor_panel_up = [0 for floor in range(0,N_FLOORS)]
 		self.__floor_panel_down = [0 for floor in range(0,N_FLOORS)]
 		self.__last_master_id = 0
+		self.__offline_mode = False
 		self.__position = (0,0,DIRN_STOP)
-		self.__thread_run_elevator = Thread(target = self.__run_elevator, args = (),)
-		self.__thread_read_button_press = Thread(target = self.__read_button_press, args = (),)
-		self.__thread_set_indicators = Thread(target = self.__set_indicators, args = (),)
-		self.__thread_save_orders = Thread(target = self.__save_orders, args = (),)
+		self.__thread_run_elevator = Thread(target = self.__run_elevator_thread, args = (),)
+		self.__thread_read_button = Thread(target = self.__read_button_thread, args = (),)
+		self.__thread_set_indicators = Thread(target = self.__set_indicators_thread, args = (),)
+		self.__thread_save_orders = Thread(target = self.__save_orders_thread, args = (),)
 		self.__start()
 
 
@@ -69,6 +71,10 @@ class SlaveDriver:
 		with self.__position_key:
 			return self.__position
 
+	def set_offline_mode(self,offline_mode):
+		with self.__offline_mode_key:
+			self.__offline_mode = offline_mode
+
 
 	def __start(self):
 		###### STARTS THE INITIAL-FUNCTIONS AND THREADS ######
@@ -79,8 +85,8 @@ class SlaveDriver:
 					self.__load_elevator_orders()
 					self.__thread_run_elevator.daemon = True
 					self.__thread_run_elevator.start()
-					self.__thread_read_button_press.daemon = True
-					self.__thread_read_button_press.start()
+					self.__thread_read_button.daemon = True
+					self.__thread_read_button.start()
 					self.__thread_set_indicators.daemon = True
 					self.__thread_set_indicators.start()
 					self.__thread_save_orders.daemon = True
@@ -169,11 +175,11 @@ class SlaveDriver:
 			self.__elevator_orders[floor][BUTTON_INTERNAL] = self.__saved_internal_orders[floor]
 
 
-	def __run_elevator(self):
+	def __run_elevator_thread(self):
 		##### RUNS THE ELEVATOR ACCORDING TO ELEVATOR ORDERS ######
 		try:
-			__run_elevator_watchdog = watchdogs.ThreadWatchdog(2,"watchdog event: SlaveDriver.__run_elevator")
-			__run_elevator_watchdog.StartWatchdog()
+			__run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(2,"watchdog event: SlaveDriver.__run_elevator_thread")
+			__run_elevator_thread_watchdog.StartWatchdog()
 
 			last_floor = 0
 			next_floor = 0
@@ -183,7 +189,7 @@ class SlaveDriver:
 
 			while True:
 				time.sleep(0.01)
-				__run_elevator_watchdog.PetWatchdog()
+				__run_elevator_thread_watchdog.PetWatchdog()
 
 				###### DECIDES WHICH FLOOR TO GO TO NEXT ######
 				elevator_orders_max = 0
@@ -283,23 +289,23 @@ class SlaveDriver:
 						last_read_floor = read_floor
 					assert move_timeout > time.time(), "unknown error: elevator not moving"
 			
-				print " my_id:" + str(MY_ID) + " up:" + str(self.__saved_master_orders_up) + " saved_up:" + str(self.__master_orders_up) + " down:" + str(self.__saved_master_orders_down) + " saved_down" + str(self.__master_orders_down) + " internal" + str(self.__internal_orders) + " saved_internal" + str(self.__saved_internal_orders) + " orders:" + str(self.__elevator_orders) + " n:" + str(next_floor) + " l:" + str(last_floor)
+				#print " my_id:" + str(MY_ID) + " up:" + str(self.__saved_master_orders_up) + " saved_up:" + str(self.__master_orders_up) + " down:" + str(self.__saved_master_orders_down) + " saved_down" + str(self.__master_orders_down) + " internal" + str(self.__internal_orders) + " saved_internal" + str(self.__saved_internal_orders) + " orders:" + str(self.__elevator_orders) + " n:" + str(next_floor) + " l:" + str(last_floor)
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__run_elevator"
+			print "SlaveDriver.__run_elevator_thread"
 			interrupt_main()
 
 
-	def __read_button_press(self):
+	def __read_button_thread(self):
 		###### READS BUTTON PRESS ######
 		try:
-			__read_button_press_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__read_button_press")
-			__read_button_press_watchdog.StartWatchdog()
+			__read_button_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__read_button_thread")
+			__read_button_thread_watchdog.StartWatchdog()
 
 			while True:
 				time.sleep(0.01)
-				__read_button_press_watchdog.PetWatchdog()
+				__read_button_thread_watchdog.PetWatchdog()
 
 				for floor in range (0,N_FLOORS):
 					for button in range(0,3):
@@ -309,30 +315,30 @@ class SlaveDriver:
 							###### ADDS INTERNAL BUTTON TO INTERNAL ORDERS ######
 							if button == BUTTON_INTERNAL:
 								with self.__internal_orders_key:
-									self.__internal_orders[floor]=1
+									self.__internal_orders[floor] = 1
 							###### ADDS UP/DOWN BUTTON TO FLOOR PANEL LIST ###### 
 							elif button == BUTTON_UP:
 								with self.__floor_panel_key:
-									self.__floor_panel_up[floor]=1
+									self.__floor_panel_up[floor] = 1
 							elif button == BUTTON_DOWN:
 								with self.__floor_panel_key:
-									self.__floor_panel_down[floor]=1
+									self.__floor_panel_down[floor] = 1
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__read_button_press"
+			print "SlaveDriver.__read_button_thread"
 			interrupt_main()
 
 
-	def __save_orders(self):
+	def __save_orders_thread(self):
 		###### SAVES ORDERS TO FILES ######
 		try:
-			__save_orders_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__save_orders")
-			__save_orders_watchdog.StartWatchdog()
+			__save_orders_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__save_orders_thread")
+			__save_orders_thread_watchdog.StartWatchdog()
 
 			while True:
 				time.sleep(0.01)
-				__save_orders_watchdog.PetWatchdog()
+				__save_orders_thread_watchdog.PetWatchdog()
 
 				###### SAVES INTERNAL ORDERS TO FILE # WITH BACKUP ######
 				with self.__internal_orders_key:
@@ -387,7 +393,7 @@ class SlaveDriver:
 							assert self.__master_orders_down == self.__saved_master_orders_down, "unknown error: loading master_file_backup"
 
 
-						###### ADDS SAVED MASTER ORDERS TO ELEVATOR ORDERS ######
+						###### ADDS SAVED MASTER ORDERS UP/DOWN TO ELEVATOR ORDERS ######
 						with self.__elevator_orders_key:
 							for floor in range(0,N_FLOORS):
 								###### UP CALLS	######
@@ -406,34 +412,43 @@ class SlaveDriver:
 									self.__elevator_orders[floor][BUTTON_DOWN] = 0 # LAR MASTER FJERNE ORDRE
 								###################################################################################################################
 
-					############################################################# BURDE KANSKJE FJERNES ############################################################
-					###### CLEARS COMPLETE ELEVATOR ORDERS FROM MASTER ORDERS ######
+
+					###### CLEARS COMPLETE ELEVATOR ORDERS UP/DOWN FROM MASTER ORDERS ######
 					with self.__elevator_orders_key:
 						for floor in range(0,N_FLOORS):
 							###### UP CALLS	######
 							if (self.__saved_master_orders_up[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_UP] == 0):
 								self.__master_orders_up[floor] = 0
+							###### DOWN CALLS ######
 							if (self.__saved_master_orders_down[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_DOWN] == 0):
 								self.__master_orders_down[floor] = 0
-					################################################################################################################################################
 
+
+					###### OFFLINE MODE # ADDS ALL MASTER ORDERS TO ELEVATOR ORDER ######
+					#with self.__offline_mode_key:
+					#	if self.__offline_mode = True:
+					#		for floor in range(0,N_FLOORS):
+					#			if self.__saved_master_orders_up[floor] > 0:
+					#				self.__elevator_orders[floor][BUTTON_UP] = 1
+					#			if self.__saved_master_orders_down[floor] > 0:
+					#				self.__elevator_orders[floor][BUTTON_UP] = 1
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__save_orders"
+			print "SlaveDriver.__save_orders_thread"
 			interrupt_main()
 
 
-	def __set_indicators(self):
+	def __set_indicators_thread(self):
 		try:
-			__set_indicators_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__set_indicators_watchdog")
-			__set_indicators_watchdog.StartWatchdog()
+			__set_indicators_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__set_indicators_thread_watchdog")
+			__set_indicators_thread_watchdog.StartWatchdog()
 
 			while True:
 				time.sleep(0.01)
-				__set_indicators_watchdog.PetWatchdog()
+				__set_indicators_thread_watchdog.PetWatchdog()
 
-				###### CALL INDICATORS #####
+				###### SETS CALL INDICATORS #####
 				with self.__master_orders_key:
 					for floor in range(0,N_FLOORS):
 						###### UP CALLS ######
@@ -455,21 +470,21 @@ class SlaveDriver:
 							else:
 								self.__panel_interface.set_button_lamp(BUTTON_INTERNAL,floor,0)
 																	
-				###### GET POSITION ######
+				###### GETS POSITION ######
 				with self.__position_key:
 					(last_floor, next_floor, direction) = self.__position
 				
-				###### OPEN DOOR INDICATOR ######
+				###### SETS OPEN DOOR INDICATOR ######
 				if last_floor == next_floor:
 					self.__panel_interface.set_door_open_lamp(1)
 				else:
 					self.__panel_interface.set_door_open_lamp(0)
 
-				###### FLOOR INDICATOR ######
+				###### SETS FLOOR INDICATOR ######
 				self.__panel_interface.set_floor_indicator(last_floor)
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__set_indicators"
+			print "SlaveDriver.__set_indicators_thread"
 			interrupt_main()
 
