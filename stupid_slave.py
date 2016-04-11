@@ -48,7 +48,7 @@ def main():
 							orders_ok = False 
 
 				else:
-					slave_driver.master_queue_elevator_run(master_message['orders_up'][:] + master_message['orders_down'][:])	
+					slave_driver.master_order_run_elevator(master_message['orders_up'][:],master_message['orders_down'][:])	
 
 					(floor_up,floor_down) = slave_driver.get_floor_panel()
 			

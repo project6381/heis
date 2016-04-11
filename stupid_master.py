@@ -16,7 +16,7 @@ def main():
 	downtime_send = time.time()
 	active_master = False
 	startup = True
-	startup_time = time.time() + 4
+	startup_time = time.time() + 2
 	while startup:
 		print "startup"
 		time.sleep(0.1)

@@ -1,7 +1,7 @@
 from ported_driver.elevator_interface import ElevatorInterface
 from ported_driver.panel_interface import PanelInterface
-from ported_driver.constants import DIRN_STOP, DIRN_UP, DIRN_DOWN, BUTTON_UP, BUTTON_DOWN, BUTTON_INTERNAL, N_FLOORS, N_BUTTONS
-from config_parameters import MY_ID
+from ported_driver.constants import DIRN_STOP, DIRN_UP, DIRN_DOWN, BUTTON_UP, BUTTON_DOWN, BUTTON_INTERNAL, N_FLOORS, N_BUTTONS 
+from config_parameters import MY_ID 
 from threading import Thread, Lock
 from thread import interrupt_main
 import time
@@ -48,10 +48,10 @@ class SlaveDriver:
 		else:
 			return False
 
-	def master_queue_elevator_run(self,master_queue):
+	def master_order_run_elevator(self,master_order_up,master_order_down):
 		with self.__master_orders_key:
-			self.__master_orders_up = master_queue[0:4]	#quick fix
-			self.__master_orders_down = master_queue[4:8] #quick fix
+			self.__master_orders_up = master_order_up
+			self.__master_orders_down = master_order_down
 
 	def read_saved_master_queue(self):
 		with self.__master_orders_key:
