@@ -35,7 +35,6 @@ class MasterHandler:
 		self.__downtime_elevator_online = [time.time() + 2 for elevator in range(0,N_ELEVATORS)]
 		self.__timeout_active_slaves = 0
 
-
 	def get_orders(self):
 		#with watchdogs.WatchdogTimer(1):
 			return (self.__elevator_orders_up,self.__elevator_orders_down,self.__orders_id)
@@ -201,8 +200,6 @@ class MasterHandler:
 						self.__active_masters[int(master_id)-1] = 1		
 						downtime[int(master_id)-1] = time.time() + 2
 				
-				
-
 		#except StandardError as error:
 		#	print error
 		#	print "MasterHandler.__master_alive_message_handler"
@@ -256,10 +253,10 @@ class MasterHandler:
 		###### CHECKS THAT THE MESSAGE IS FOR THIS SYSTEM # WITHOUT OBVIOUS ERRORS ######
 		#with watchdogs.WatchdogTimer(1):
 			if data[0] == '<' and data[len(data) -1] == '>':
-
 				counter = 1
 				separator = False
 				separator_pos = 0
+
 				for char in data:
 					if char == ";" and separator == False:
 						separator_pos = counter
@@ -268,6 +265,7 @@ class MasterHandler:
 
 				message_length = str(len(data) - separator_pos - 1)
 				test_length = str()
+
 				for n in range(1, separator_pos - 1):
 					test_length += data[n]
 

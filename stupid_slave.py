@@ -32,7 +32,9 @@ def main():
 				if slave_driver.changing_master(master_message['master_id']):	
 					
 					my_master_queue = slave_driver.read_saved_master_queue()
+
 					print "CHANGING MASTER STATE = TRUE -> my_master_queue: " + str(my_master_queue)
+					
 					for i in range(0,8):
 						if my_master_queue[i] > 0:
 							my_master_queue[i]=1
