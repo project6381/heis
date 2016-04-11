@@ -23,7 +23,7 @@ def main():
 
 			if downtime_receive < time.time():
 				master_message = message_handler.receive_from_master()
-				downtime_receive = time.time() + 0.75
+				downtime_receive = time.time()
 			
 			if master_message is not None:	
 
@@ -59,9 +59,9 @@ def main():
 			
 			if downtime_send < time.time():
 				message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
-				downtime_send = time.time() + 0.3
+				downtime_send = time.time() + 0.1
 
-			time.sleep(0.1)
+			time.sleep(0.01)
 
 		#except KeyboardInterrupt:
 		#	pass

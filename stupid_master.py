@@ -30,7 +30,7 @@ def main():
 					master_handler.update_elevator_online(slave_message['slave_id'])			
 
 			print "I am NOT master, my id is: " + str(MY_ID)
-			time.sleep(0.02)
+			time.sleep(0.01)
 
 			while active_master:
 				
@@ -38,7 +38,7 @@ def main():
 
 				if downtime_receive < time.time():
 					slave_message = message_handler.receive_from_slave()
-					downtime_receive = time.time() + 0.75
+					downtime_receive = time.time()
 
 				#slave_message = message_handler.receive_from_slave()
 
@@ -63,7 +63,7 @@ def main():
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
 
-				time.sleep(0.02)
+				time.sleep(0.01)
 		
 		#except KeyboardInterrupt:
 		#	pass
