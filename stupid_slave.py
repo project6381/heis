@@ -30,7 +30,7 @@ def main():
 				#slave_driver.clear_floor_panel(master_message['orders_up'][:],master_message['orders_down'][:])
 						
 				orders_id = master_message['orders_id']
-				print orders_ok
+				print str(orders_ok) + '    '+ str(master_message['master_id'])
 				if slave_driver.changing_master(master_message['master_id'],orders_ok):	
 					
 					(my_master_orders_up,my_master_orders_down) = slave_driver.read_saved_master_queue()
