@@ -39,11 +39,13 @@ class SlaveDriver:
 		self.__start()
 
 	
-	def changing_master(self,master_id):
+	def changing_master(self,master_id,orders_ok):
 		if self.__last_master_id !=  master_id:
 			self.__last_master_id = master_id
 			return True
-		else: 
+		elif orders_ok == False: 
+			return True
+		else:
 			return False
 
 	def master_queue_elevator_run(self,master_queue):
@@ -53,13 +55,13 @@ class SlaveDriver:
 
 	def read_saved_master_queue(self):
 		with self.__master_orders_key:
-			saved_master_queue = self.__saved_master_orders_up[:] + self.__saved_master_orders_down[:] #quick fix
-			return saved_master_queue
+			return (self.__saved_master_orders_up[:],self.__saved_master_orders_down[:])
 	
 	def get_floor_panel(self):
 		with self.__floor_panel_key:
 			return (self.__floor_panel_up[:],self.__floor_panel_down[:])		
 	
+	'''
 	def clear_floor_panel(self,orders_up,orders_down):
 		with self.__floor_panel_key:
 			for floor in range (0,N_FLOORS):			
@@ -67,6 +69,7 @@ class SlaveDriver:
 					self.__floor_panel_up[floor] = 0
 				if (orders_down[floor] != 0):
 					self.__floor_panel_down[floor] = 0
+	'''
 
 	def read_position(self):
 		with self.__position_key:
@@ -320,6 +323,15 @@ class SlaveDriver:
 							elif button == BUTTON_DOWN:
 								with self.__floor_panel_key:
 									self.__floor_panel_down[floor] = 1
+						else:
+							###### CLEARS UP/DOWN BUTTON FROM FLOOR PANEL LIST ###### 
+							if button == BUTTON_UP:
+								with self.__floor_panel_key:
+									self.__floor_panel_up[floor] = 0
+							elif button == BUTTON_DOWN:
+								with self.__floor_panel_key:
+									self.__floor_panel_down[floor] = 0
+
 
 		except StandardError as error:
 			print error
@@ -397,28 +409,29 @@ class SlaveDriver:
 								if self.__saved_master_orders_up[floor] == MY_ID:
 									self.__elevator_orders[floor][BUTTON_UP] = 1
 								####################################### BURDE KANSKJE FJERNES #####################################################
-								else:
-									self.__elevator_orders[floor][BUTTON_UP] = 0 # LAR MASTER FJERNE ORDRE
+								#else:
+								#	self.__elevator_orders[floor][BUTTON_UP] = 0 # LAR MASTER FJERNE ORDRE
 								###################################################################################################################
 
 								###### DOWN CALLS ######
 								if self.__saved_master_orders_down[floor] == MY_ID:
 									self.__elevator_orders[floor][BUTTON_DOWN] = 1
 								####################################### BURDE KANSKJE FJERNES #####################################################
-								else:
-									self.__elevator_orders[floor][BUTTON_DOWN] = 0 # LAR MASTER FJERNE ORDRE
+								#else:
+								#	self.__elevator_orders[floor][BUTTON_DOWN] = 0 # LAR MASTER FJERNE ORDRE
 								###################################################################################################################
 
 
+					############################################# OFFLINE MODE ###################################################
 					###### CLEARS COMPLETE ELEVATOR ORDERS UP/DOWN FROM MASTER ORDERS ######
-					with self.__elevator_orders_key:
-						for floor in range(0,N_FLOORS):
-							###### UP CALLS	######
-							if (self.__saved_master_orders_up[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_UP] == 0):
-								self.__master_orders_up[floor] = 0
-							###### DOWN CALLS ######
-							if (self.__saved_master_orders_down[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_DOWN] == 0):
-								self.__master_orders_down[floor] = 0
+					#with self.__elevator_orders_key:
+					#	for floor in range(0,N_FLOORS):
+					#		###### UP CALLS	######
+					#		if (self.__saved_master_orders_up[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_UP] == 0):
+					#			self.__master_orders_up[floor] = 0
+					#		###### DOWN CALLS ######
+					#		if (self.__saved_master_orders_down[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_DOWN] == 0):
+					#			self.__master_orders_down[floor] = 0
 
 
 					###### OFFLINE MODE # ADDS ALL MASTER ORDERS TO ELEVATOR ORDER ######

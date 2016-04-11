@@ -23,7 +23,8 @@ class MasterHandler:
 		self.__elevator_online = [0 for elevator in range(0,N_ELEVATORS)]
 		self.__active_masters_key = Lock()
 		self.__master_alive_thread_started = False
-		self.__thread_buffering_master_alive = Thread(target = self.__master_alive_message_handler_thread, args = (),name = "Buffering master alive thread")
+		self.__timeout_thread_started = False
+		self.__thread_master_alive = Thread(target = self.__master_alive_thread, args = (),name = "Buffering master alive thread")
 		self.__thread_timeout = Thread(target = self.__timeout_thread, args = (),name = "Timeout thread")
 
 		self.__orders_up = [0 for floor in range(0,N_FLOORS)]
@@ -38,8 +39,14 @@ class MasterHandler:
 	def get_orders(self):
 		return (self.__elevator_orders_up,self.__elevator_orders_down,self.__orders_id)
 
-	def update_master_alive(self, elevator_id):
+	def update_master_alive(self, elevator_id):			
+		###### START THREAD IF NOT ALREADY RUNNING ######
+		if self.__master_alive_thread_started is not True:
+			self.__start(self.__thread_master_alive)
+
 		self.__send(str(elevator_id),MASTER_TO_MASTER_PORT)
+
+
 
 	def update_elevator_position(self,slave_id,last_floor,next_floor,direction):
 		self.__elevator_positions[slave_id-1] = [last_floor,next_floor,direction] 
@@ -47,12 +54,8 @@ class MasterHandler:
 	def update_elevator_online(self,slave_id):
 		self.__elevator_online[slave_id-1] = 1
 		self.__downtime_elevator_online[slave_id-1] = time.time() + 1
-		
+	
 	def check_master_alive(self):	
-		###### START THREADS IF NOT ALREADY RUNNING ######
-		if self.__master_alive_thread_started is not True:
-			self.__start(self.__thread_buffering_master_alive)
-
 		###### RETURN THE LOWEST ELEVATOR ID ######
 		for elevator in range(0,N_ELEVATORS):
 			if self.__active_masters[elevator] == 1:
@@ -165,10 +168,13 @@ class MasterHandler:
 
 
 		
-	def __master_alive_message_handler_thread(self):
+
+	def __master_alive_thread(self):
 		try:
 			###### SET THREAD STARTED FLAG  ######
 			self.__master_alive_thread_started = True
+
+
 
 			###### SETTING UP LOCAL VARIABLES  ######
 			downtime = [time.time() + 3 for elevator in range(0,N_ELEVATORS)]
@@ -188,6 +194,7 @@ class MasterHandler:
 				interrupt_main()
 
 			while True:
+
 				###### RECIEVE AND CHECK ######
 				try:
 					data, address = udp.recvfrom(1024)
@@ -196,8 +203,12 @@ class MasterHandler:
 					print error
 					print "MasterHandler.__master_alive_message_handler:"
 					print "udp.recvfrom(1024) failed!"
+					
+					#######################################only for testing ####################################
 					print "Sleeping 1 sec.."
 					time.sleep(1)
+					#############################################################################################
+
 
 				master_id = self.__errorcheck(data)
 	
@@ -221,19 +232,22 @@ class MasterHandler:
 			__timeout_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MasterHandler.__elevator_timeout_thread_watchdog")
 			__timeout_thread_watchdog.StartWatchdog()	
 			
+			self.__timeout_thread_started = True
 			while True:
 				__timeout_thread_watchdog.PetWatchdog()
 				for elevator in range(0,N_ELEVATORS):
 					if downtime[elevator] < time.time():
 						self.__active_masters[elevator] = 0
 
+
 				for elevator in range(0,N_ELEVATORS):
 					if self.__downtime_elevator_online[elevator] < time.time():
 						self.__elevator_online[elevator] = 0
 
+
 				if self.__downtime_order_id < time.time():
-					for elevator in range(0,N_ELEVATORS):
-						self.__timeout_active_slaves = 1
+					self.__timeout_active_slaves = 1
+
 
 				time.sleep(0.1)
 
@@ -268,29 +282,29 @@ class MasterHandler:
 
 	def __errorcheck(self,data):
 		###### CHECKS THAT THE MESSAGE IS FOR THIS SYSTEM # WITHOUT OBVIOUS ERRORS ######
-			if data[0] == '<' and data[len(data) -1] == '>':
-				counter = 1
-				separator = False
-				separator_pos = 0
+		if data[0] == '<' and data[len(data) -1] == '>':
+			counter = 1
+			separator = False
+			separator_pos = 0
 
-				for char in data:
-					if char == ";" and separator == False:
-						separator_pos = counter
-						separator = True
-					counter += 1
+			for char in data:
+				if char == ";" and separator == False:
+					separator_pos = counter
+					separator = True
+				counter += 1
 
-				message_length = str(len(data) - separator_pos - 1)
-				test_length = str()
+			message_length = str(len(data) - separator_pos - 1)
+			test_length = str()
 
-				for n in range(1, separator_pos - 1):
-					test_length += data[n]
+			for n in range(1, separator_pos - 1):
+				test_length += data[n]
 
-				if test_length == message_length and separator == True:
-					message = str()
-					for n in range(separator_pos,len(data) - 1):
-						message += data[n]
-					return message
-				else:
-					return None
+			if test_length == message_length and separator == True:
+				message = str()
+				for n in range(separator_pos,len(data) - 1):
+					message += data[n]
+				return message
 			else:
 				return None
+		else:
+			return None
