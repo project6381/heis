@@ -29,7 +29,8 @@ def main():
 
 			print "I am NOT master, my id is: " + str(MY_ID)
 
-			time.sleep(0.01)
+			time.sleep(0.001)
+
 
 			while active_master:
 				
@@ -58,7 +59,7 @@ def main():
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
 
-				time.sleep(0.01)
+				time.sleep(0.001)
 		
 		#except KeyboardInterrupt:
 		#	pass

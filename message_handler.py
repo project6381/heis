@@ -120,7 +120,8 @@ class MessageHandler:
 
 	def __read_message(self,port):
 		#with watchdogs.WatchdogTimer(1):
-			# Check if buffering messages threads is already running 
+
+			###### START THREADS IF NOT ALREADY RUNNING ######
 			if port == MASTER_TO_SLAVE_PORT:
 				if self.__slave_thread_started is not True:
 					self.__start(self.__thread_buffering_slave)
@@ -155,6 +156,7 @@ class MessageHandler:
 			last_message = 'This message will never be heard'
 			self.__master_thread_started = True
 
+			###### SETTING UP UDP SOCKET ######
 			port = ('', SLAVE_TO_MASTER_PORT)
 			udp = socket(AF_INET, SOCK_DGRAM)
 			udp.bind(port)
@@ -168,6 +170,7 @@ class MessageHandler:
 				data, address = udp.recvfrom(1024)
 				message = self.__errorcheck(data)
 
+				###### APPENDING NEW MESSAGES IN BUFFER ######
 				if (message != last_message) or (downtime < time.time()):
 					if message is not None:
 						with self.__receive_buffer_master_key:
@@ -190,6 +193,7 @@ class MessageHandler:
 			last_message = 'This message will never be heard'
 			self.__slave_thread_started = True
 
+			###### SETTING UP UDP SOCKET ######
 			port = ('', MASTER_TO_SLAVE_PORT)
 			udp = socket(AF_INET, SOCK_DGRAM)
 			udp.bind(port)
@@ -201,6 +205,8 @@ class MessageHandler:
 				#__buffering_slave_messages_watchdog.PetWatchdog()
 				data, address = udp.recvfrom(1024)
 				message = self.__errorcheck(data)
+				
+				###### APPENDING NEW MESSAGES IN BUFFER ######
 				if (message != last_message) or (downtime < time.time()):
 					if message is not None:
 						with self.__receive_buffer_slave_key:

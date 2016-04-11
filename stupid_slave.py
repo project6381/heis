@@ -8,7 +8,7 @@ import subprocess
 
 
 def main():
-
+	time.sleep(4)
 	#instantiating classes
 	message_handler = MessageHandler()
 	slave_driver = SlaveDriver()
@@ -19,8 +19,6 @@ def main():
 		#try:
 
 			position = slave_driver.read_position()
-
-		
 			master_message = message_handler.receive_from_master()
 			
 			if master_message is not None:	

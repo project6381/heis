@@ -24,6 +24,7 @@ class MasterHandler:
 		self.__active_masters_key = Lock()
 		self.__master_alive_thread_started = False
 		self.__thread_buffering_master_alive = Thread(target = self.__master_alive_message_handler_thread, args = (),name = "Buffering master alive thread")
+		self.__thread_timeout = Thread(target = self.__timeout_thread, args = (),name = "Timeout thread")
 
 		self.__orders_up = [0 for floor in range(0,N_FLOORS)]
 		self.__orders_down = [0 for floor in range(0,N_FLOORS)]
@@ -31,7 +32,7 @@ class MasterHandler:
 		self.__last_orders_down = [0 for floor in range(0,N_FLOORS)]
 
 		self.__downtime_order_id = time.time() + 2
-		self.__downtime_elevator_online = [time.time() + 3 for elevator in range(0,N_ELEVATORS)]
+		self.__downtime_elevator_online = [time.time() + 2 for elevator in range(0,N_ELEVATORS)]
 		self.__timeout_active_slaves = 0
 
 
@@ -54,9 +55,11 @@ class MasterHandler:
 		
 	def check_master_alive(self):	
 		#with watchdogs.WatchdogTimer(1):
+			###### START THREADS IF NOT ALREADY RUNNING ######
 			if self.__master_alive_thread_started is not True:
 				self.__start(self.__thread_buffering_master_alive)
 
+			###### RETURN THE LOWEST ELEVATOR ID ######
 			for elevator in range(0,N_ELEVATORS):
 				if self.__active_masters[elevator] == 1:
 					return elevator+1
@@ -91,9 +94,8 @@ class MasterHandler:
 			self.__downtime_elevator_online[slave_id-1] = time.time() + 1
 			active_slaves = self.__elevator_online.count(1)
 
-			
-			if ( (self.__orders_up != self.__last_orders_up) or (self.__orders_down != self.__last_orders_down) ) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_active_slaves == 1): # and (0 not in elevators_queue_id):
-				#print '1111111111111111111111111111111111'
+			###### UPDATES ORDERS WHEN ALL ACTIVE SLAVES ARE SYNCED OR TIMED OUT ######
+			if ( (self.__orders_up != self.__last_orders_up) or (self.__orders_down != self.__last_orders_down) ) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_active_slaves == 1):
 				self.__orders_id += 1
 				if self.__orders_id > 9999: 
 					self.__orders_id = 1
@@ -101,9 +103,7 @@ class MasterHandler:
 				self.__last_orders_down = self.__orders_down[:]
 				self.__downtime_order_id = time.time() + 2
 				self.__timeout_active_slaves = 0
-
 				
-			#print self.__orders_up + self.__orders_down				
 			self.__assign_orders()
 
 
@@ -180,6 +180,7 @@ class MasterHandler:
 			last_message = 'This message will never be heard'
 			self.__master_alive_thread_started = True
 
+			###### SETTING UP UDP SOCKET ######
 			port = ('', MASTER_TO_MASTER_PORT)
 			udp = socket(AF_INET, SOCK_DGRAM)
 			udp.bind(port)
@@ -190,11 +191,13 @@ class MasterHandler:
 			while True:
 				#__master_alive_message_handler_watchdog.PetWatchdog()
 				data, address = udp.recvfrom(1024)
-				message = self.__errorcheck(data)
-				if message is not None:
+				master_id = self.__errorcheck(data)
+				
+				###### UPDATE LIST OF ACTIVE MASTERS ######
+				if master_id is not None:
 					with self.__active_masters_key:
-						self.__active_masters[int(message)-1] = 1		
-						downtime[int(message)-1] = time.time() + 3
+						self.__active_masters[int(master_id)-1] = 1		
+						downtime[int(master_id)-1] = time.time() + 2
 				
 				
 
@@ -204,11 +207,11 @@ class MasterHandler:
 		#	interrupt_main()
 				
 	
-	def __elevator_timeout_thread(self):
+	def __timeout_thread(self):
 			#try:
 
-				#__elevator_timeout_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MasterHandler.__elevator_timeout_thread_watchdog")
-				#__elevator_timeout_thread_watchdog.StartWatchdog()	
+				#__timeout_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MasterHandler.__elevator_timeout_thread_watchdog")
+				#__timeout_thread_watchdog.StartWatchdog()	
 				
 				while True:
 					for elevator in range(0,N_ELEVATORS):
@@ -228,7 +231,7 @@ class MasterHandler:
 
 		#except StandardError as error:
 		#	print error
-		#	print "MasterHandler.__elevator_timeout_thread_thread"
+		#	print "MasterHandler.__imeout_thread_thread"
 		#	interrupt_main()
 	
 
