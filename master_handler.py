@@ -257,8 +257,10 @@ class MasterHandler:
 			except IOError as error:
 				print error
 				print "MasterHandler.__send: Failed. Network down?"
-				print "Sleeping 1 sec"
+				#######################################only for testing ####################################
+				print "Sleeping 1 sec.."
 				time.sleep(1)
+				#############################################################################################
 
 	def __start(self,thread):
 			try:

@@ -2,7 +2,7 @@ from socket import *
 from threading import Thread, Lock
 import time
 from ported_driver.constants import N_FLOORS
-from config_parameters import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID
+from config_parameters import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID, TICK
 import watchdogs
 from thread import interrupt_main
 
@@ -114,9 +114,10 @@ class MessageHandler:
 		except IOError as error:
 			print error
 			print "MessageHandler.__send: Failed. Network down?"
-			print "Sleeping 1 sec"
+			#######################################only for testing ####################################
+			print "Sleeping 1 sec.."
 			time.sleep(1)
-
+			#############################################################################################
 
 
 	def __read_message(self,port):			
@@ -182,9 +183,11 @@ class MessageHandler:
 					print error
 					print "MessageHandler.__buffering_master_messages_thread:"
 					print "udp.recvfrom(1024) failed!"
+					#######################################only for testing ####################################
 					print "Sleeping 1 sec.."
 					time.sleep(1)
-
+					#############################################################################################
+				
 				message = self.__errorcheck(data)
 
 				# APPENDING NEW MESSAGES IN BUFFER #
@@ -235,8 +238,10 @@ class MessageHandler:
 					print error
 					print "MessageHandler.__buffering_slave_messages_thread:"
 					print "udp.recvfrom(1024) failed!"
+					#######################################only for testing ####################################
 					print "Sleeping 1 sec.."
 					time.sleep(1)
+					#############################################################################################
 
 				message = self.__errorcheck(data)
 				

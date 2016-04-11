@@ -1,7 +1,7 @@
 from master_handler import MasterHandler
 from message_handler import MessageHandler
 from ported_driver.constants import DIRN_DOWN, DIRN_UP, DIRN_STOP, N_FLOORS
-from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, N_ELEVATORS, MY_ID
+from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, N_ELEVATORS, MY_ID, TICK
 import time
 from collections import Counter
 import sys
@@ -39,7 +39,7 @@ def main():
 
 			print "I am NOT master, my id is: " + str(MY_ID)
 
-			time.sleep(0.001)
+			time.sleep(TICK/10)
 
 
 			while active_master:
@@ -69,7 +69,7 @@ def main():
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
 
-				time.sleep(0.001)
+				time.sleep(TICK/10)
 		
 		#except KeyboardInterrupt:
 		#	pass

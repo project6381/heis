@@ -1,7 +1,7 @@
 from slave_driver import SlaveDriver
 from message_handler import MessageHandler
 from ported_driver.constants import N_FLOORS
-from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, MY_ID
+from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, MY_ID, TICK
 import time
 import sys
 import subprocess
@@ -9,7 +9,7 @@ import subprocess
 
 def main():
 
-	time.sleep(4)
+	#time.sleep(4)
 
 	#instantiating classes
 	message_handler = MessageHandler()
@@ -59,7 +59,7 @@ def main():
 						downtime_send = time.time() + 0.1
 
 
-			time.sleep(0.0123)
+			time.sleep(TICK/8)
 
 		#except KeyboardInterrupt:
 		#	pass

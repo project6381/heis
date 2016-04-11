@@ -1,7 +1,7 @@
 from ported_driver.elevator_interface import ElevatorInterface
 from ported_driver.panel_interface import PanelInterface
 from ported_driver.constants import DIRN_STOP, DIRN_UP, DIRN_DOWN, BUTTON_UP, BUTTON_DOWN, BUTTON_INTERNAL, N_FLOORS, N_BUTTONS 
-from config_parameters import MY_ID 
+from config_parameters import MY_ID, TICK
 from threading import Thread, Lock
 from thread import interrupt_main
 import time
@@ -193,7 +193,7 @@ class SlaveDriver:
 			last_read_floor = -1
 
 			while True:
-				time.sleep(0.01)
+				time.sleep(TICK)
 				__run_elevator_thread_watchdog.PetWatchdog()
 
 				###### DECIDES WHICH FLOOR TO GO TO NEXT ######
@@ -317,7 +317,7 @@ class SlaveDriver:
 			__read_button_thread_watchdog.StartWatchdog()
 
 			while True:
-				time.sleep(0.01)
+				time.sleep(TICK)
 				__read_button_thread_watchdog.PetWatchdog()
 
 				for floor in range (0,N_FLOORS):
@@ -359,7 +359,7 @@ class SlaveDriver:
 			__save_orders_thread_watchdog.StartWatchdog()
 
 			while True:
-				time.sleep(0.01)
+				time.sleep(TICK)
 				__save_orders_thread_watchdog.PetWatchdog()
 
 				###### SAVES INTERNAL ORDERS TO FILE # WITH BACKUP ######
@@ -468,7 +468,7 @@ class SlaveDriver:
 			__set_indicators_thread_watchdog.StartWatchdog()
 
 			while True:
-				time.sleep(0.01)
+				time.sleep(TICK)
 				__set_indicators_thread_watchdog.PetWatchdog()
 
 				###### SETS CALL INDICATORS #####
