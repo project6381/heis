@@ -80,23 +80,18 @@ class SlaveDriver:
 	def __start(self):
 		###### STARTS THE INITIAL-FUNCTIONS AND THREADS ######
 		try:
-			with watchdogs.WatchdogTimer(11):
-				with self.__master_orders_key:
-					self.__startup()
-					self.__load_elevator_orders()
-					self.__thread_run_elevator.daemon = True
-					self.__thread_run_elevator.start()
-					self.__thread_read_button.daemon = True
-					self.__thread_read_button.start()
-					self.__thread_set_indicators.daemon = True
-					self.__thread_set_indicators.start()
-					self.__thread_save_orders.daemon = True
-					self.__thread_save_orders.start()
+			with self.__master_orders_key:
+				self.__startup()
+				self.__load_elevator_orders()
+				self.__thread_run_elevator.daemon = True
+				self.__thread_run_elevator.start()
+				self.__thread_read_button.daemon = True
+				self.__thread_read_button.start()
+				self.__thread_set_indicators.daemon = True
+				self.__thread_set_indicators.start()
+				self.__thread_save_orders.daemon = True
+				self.__thread_save_orders.start()
 
-		except watchdogs.WatchdogTimer:
-			print "watchdog error"
-			print "SlaveDriver.__start"
-			interrupt_main()
 		except StandardError as error:
 			print error
 			print "SlaveDriver.__start"
