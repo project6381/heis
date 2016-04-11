@@ -168,6 +168,7 @@ class MasterHandler:
 		
 	def __master_alive_message_handler_thread(self):
 		try:
+			###### SET THREAD STARTED FLAG  ######
 			self.__master_alive_thread_started = True
 
 			###### SETTING UP LOCAL VARIABLES  ######
@@ -180,30 +181,34 @@ class MasterHandler:
 				udp = socket(AF_INET, SOCK_DGRAM)
 				udp.bind(port)
 				udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+
 			except IOError as error:
 				print error
 				print "MasterHandler.__master_alive_message_handler:"
 				print "Failed setting up udp sockets"
-				print "Sleeping 1 sec.."
-				time.sleep(1)
+				interrupt_main()
 
 			while True:
+				###### RECIEVE AND CHECK ######
 				try:
 					data, address = udp.recvfrom(1024)
+
 				except IOError as error:
 					print error
 					print "MasterHandler.__master_alive_message_handler:"
 					print "udp.recvfrom(1024) failed!"
 					print "Sleeping 1 sec.."
 					time.sleep(1)
+
+				master_id = self.__errorcheck(data)
 	
 				###### UPDATE LIST OF ACTIVE MASTERS ######
 				if master_id is not None:
 					with self.__active_masters_key:
 						self.__active_masters[int(master_id)-1] = 1		
 						downtime[int(master_id)-1] = time.time() + 2
-				
-				
+						# In case network is down #
+						master_id = None		
 
 		except StandardError as error:
 			print error
@@ -212,52 +217,57 @@ class MasterHandler:
 				
 	
 	def __timeout_thread(self):
-			try:
+		try:
+			__timeout_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MasterHandler.__elevator_timeout_thread_watchdog")
+			__timeout_thread_watchdog.StartWatchdog()	
+			
+			while True:
+				__timeout_thread_watchdog.PetWatchdog()
+				for elevator in range(0,N_ELEVATORS):
+					if downtime[elevator] < time.time():
+						self.__active_masters[elevator] = 0
 
-				__timeout_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MasterHandler.__elevator_timeout_thread_watchdog")
-				__timeout_thread_watchdog.StartWatchdog()	
-				
-				while True:
-					__timeout_thread_watchdog.PetWatchdog()
+				for elevator in range(0,N_ELEVATORS):
+					if self.__downtime_elevator_online[elevator] < time.time():
+						self.__elevator_online[elevator] = 0
+
+				if self.__downtime_order_id < time.time():
 					for elevator in range(0,N_ELEVATORS):
-						if downtime[elevator] < time.time():
-							self.__active_masters[elevator] = 0
+						self.__timeout_active_slaves = 1
 
-					for elevator in range(0,N_ELEVATORS):
-						if self.__downtime_elevator_online[elevator] < time.time():
-							self.__elevator_online[elevator] = 0
-
-
-					if self.__downtime_order_id < time.time():
-						for elevator in range(0,N_ELEVATORS):
-							self.__timeout_active_slaves = 1
-
-					time.sleep(0.1)
+				time.sleep(0.1)
 
 		except StandardError as error:
 			print error
 			print "MasterHandler.__timeout_thread_"
 			interrupt_main()
 	
-
-
 	def __send(self, data, port):
-		#with watchdogs.WatchdogTimer(1):
-			send = ('<broadcast>', port)
-			udp = socket(AF_INET, SOCK_DGRAM)
-			udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-			message='<%s;%s>' % (str(len(data)), data)
-			udp.sendto(message, send)
-			udp.close()
+			try:
+				send = ('<broadcast>', port)
+				udp = socket(AF_INET, SOCK_DGRAM)
+				udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+				message = '<%s;%s>' % (str(len(data)), data)
+				udp.sendto(message, send)
+				udp.close()
+
+			except IOError as error:
+				print error
+				print "MasterHandler.__send: Failed. Network down?"
+				print "Sleeping 1 sec"
+				time.sleep(1)
 
 	def __start(self,thread):
-		#with watchdogs.WatchdogTimer(1):
-			thread.daemon = True # Terminate thread when "main" is finished
-			thread.start()
+			try:
+				thread.daemon = True # Terminate thread when "main" is finished
+				thread.start()
+			except StandardError as error:
+				print error
+				print "MasterHandler.__start(): Thread: %s operation failed" % (thread.name)
+				interrupt_main()
 
 	def __errorcheck(self,data):
 		###### CHECKS THAT THE MESSAGE IS FOR THIS SYSTEM # WITHOUT OBVIOUS ERRORS ######
-		#with watchdogs.WatchdogTimer(1):
 			if (data[0] == '<') and (data[len(data) - 1] == '>'):
 
 				counter=1

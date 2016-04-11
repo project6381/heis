@@ -34,93 +34,92 @@ class MessageHandler:
 	
 
 	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction,orders_id):
-		
-		#with watchdogs.WatchdogTimer(1):
-			floor_up = str()
-			floor_down = str()
+		floor_up = str()
+		floor_down = str()
 
-			for floor in slave_floor_up:
-				floor_up += str(floor)	
+		for floor in slave_floor_up:
+			floor_up += str(floor)	
 
-			for floor in slave_floor_down:
-				floor_down += str(floor)	
+		for floor in slave_floor_down:
+			floor_down += str(floor)	
 
 
-			message = "%s%s%i%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction,orders_id)
-			self.__send(message,SLAVE_TO_MASTER_PORT)
+		message = "%s%s%i%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction,orders_id)
+		self.__send(message,SLAVE_TO_MASTER_PORT)
 
 
 	def send_to_slave(self,orders_up,orders_down,master_id,orders_id):
-		#with watchdogs.WatchdogTimer(1):
-			message = str()
+		message = str()
 
-			master_id = str(master_id)
-			orders_id = str(orders_id)
-			
-			for order in orders_up:
-				message += str(order)
+		master_id = str(master_id)
+		orders_id = str(orders_id)
+		
+		for order in orders_up:
+			message += str(order)
 
-			for order in orders_down:
-				message += str(order)	
+		for order in orders_down:
+			message += str(order)	
 
-			message += master_id
-			message += orders_id
-			
-			self.__send(message,MASTER_TO_SLAVE_PORT)
+		message += master_id
+		message += orders_id
+		
+		self.__send(message,MASTER_TO_SLAVE_PORT)
 			
 
 
 	def receive_from_master(self):
-		#with watchdogs.WatchdogTimer(1):
-			message = self.__read_message(MASTER_TO_SLAVE_PORT)
+		message = self.__read_message(MASTER_TO_SLAVE_PORT)
 
-			if message is not None:
+		if message is not None:
 
-				for floor in range (0,N_FLOORS):
-					self.__master_message['orders_up'][floor] = int(message[floor])
+			for floor in range (0,N_FLOORS):
+				self.__master_message['orders_up'][floor] = int(message[floor])
 
-				for floor in range (0,N_FLOORS):
-					self.__master_message['orders_down'][floor] = int(message[4+floor])
+			for floor in range (0,N_FLOORS):
+				self.__master_message['orders_down'][floor] = int(message[4+floor])
 
-				self.__master_message['master_id'] = int(message[8])
-				self.__master_message['orders_id'] = int(message[9:])
+			self.__master_message['master_id'] = int(message[8])
+			self.__master_message['orders_id'] = int(message[9:])
 
-				return self.__master_message
+			return self.__master_message
 
 
 	def receive_from_slave(self):				
-		#with watchdogs.WatchdogTimer(1):
-			message = self.__read_message(SLAVE_TO_MASTER_PORT)
-			
-			if message is not None:
+		message = self.__read_message(SLAVE_TO_MASTER_PORT)
+		
+		if message is not None:
 
-				for floor in range (0,N_FLOORS):
-						self.__slave_message['slave_floor_up'][floor] = int(message[floor])
-						self.__slave_message['slave_floor_down'][floor] = int(message[4+floor]) 	
+			for floor in range (0,N_FLOORS):
+					self.__slave_message['slave_floor_up'][floor] = int(message[floor])
+					self.__slave_message['slave_floor_down'][floor] = int(message[4+floor]) 	
 
-				self.__slave_message['slave_id'] = int(message[8])
-				self.__slave_message['last_floor'] = int(message[9])
-				self.__slave_message['next_floor'] = int(message[10])
-				self.__slave_message['direction'] = int(message[11])
-				self.__slave_message['orders_id'] = int(message[12:])
+			self.__slave_message['slave_id'] = int(message[8])
+			self.__slave_message['last_floor'] = int(message[9])
+			self.__slave_message['next_floor'] = int(message[10])
+			self.__slave_message['direction'] = int(message[11])
+			self.__slave_message['orders_id'] = int(message[12:])
 
-				return self.__slave_message
+			return self.__slave_message
 
 
 	def __send(self, data, port):
-		#with watchdogs.WatchdogTimer(1):
+		try:
 			send = ('<broadcast>', port)
 			udp = socket(AF_INET, SOCK_DGRAM)
 			udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-			message='<%s;%s>' % (str(len(data)), data)
+			message = '<%s;%s>' % (str(len(data)), data)
 			udp.sendto(message, send)
 			udp.close()
 
+		except IOError as error:
+			print error
+			print "MessageHandler.__send: Failed. Network down?"
+			print "Sleeping 1 sec"
+			time.sleep(1)
 
 
-	def __read_message(self,port):
-		#with watchdogs.WatchdogTimer(1):
 
+	def __read_message(self,port):			
 			###### START THREADS IF NOT ALREADY RUNNING ######
 			if port == MASTER_TO_SLAVE_PORT:
 				if self.__slave_thread_started is not True:
@@ -142,68 +141,103 @@ class MessageHandler:
 				else:
 					return None
 
-
 	def __start(self,thread):
-		#with watchdogs.WatchdogTimer(1):
-			thread.daemon = True # Terminate thread when "main" is finished
-			thread.start()
+			try:
+				thread.daemon = True # Terminate thread when "main" is finished
+				thread.start()
+			except StandardError as error:
+				print error
+				print "MessageHandler.__start(): Thread: %s operation failed" % (thread.name)
+				interrupt_main()
 
 	def __buffering_master_messages_thread(self):
-		#try:
-			#__buffering_master_messages_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MessageHandler.__buffering_master_messages_watchdog")
-			#__buffering_master_messages_watchdog.StartWatchdog()
-
-			last_message = 'This message will never be heard'
+		try:
+			###### SET THREAD STARTED FLAG  ######
 			self.__master_thread_started = True
 
+			###### SETTING UP LOCAL VARIABLES  ######
+			last_message = 'This message will never be heard'
+
 			###### SETTING UP UDP SOCKET ######
-			port = ('', SLAVE_TO_MASTER_PORT)
-			udp = socket(AF_INET, SOCK_DGRAM)
-			udp.bind(port)
-			udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+			try:
+				port = ('', SLAVE_TO_MASTER_PORT)
+				udp = socket(AF_INET, SOCK_DGRAM)
+				udp.bind(port)
+				udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+
+			except IOError as error:
+				print error
+				print "MessageHandler.__buffering_master_messages_thread:"
+				print "Failed setting up udp sockets"
+				interrupt_main()
 
 			downtime = time.time() + 0.5
 
 			while True:
-				#__buffering_master_messages_watchdog.PetWatchdog()
+				# RECIEVE AND CHECK #
+				try:
+					data, address = udp.recvfrom(1024)
 
-				data, address = udp.recvfrom(1024)
+				except IOError as error:
+					print error
+					print "MessageHandler.__buffering_master_messages_thread:"
+					print "udp.recvfrom(1024) failed!"
+					print "Sleeping 1 sec.."
+					time.sleep(1)
+
 				message = self.__errorcheck(data)
 
-				###### APPENDING NEW MESSAGES IN BUFFER ######
+				# APPENDING NEW MESSAGES IN BUFFER #
 				if (message != last_message) or (downtime < time.time()):
 					if message is not None:
 						with self.__receive_buffer_master_key:
 							self.__receive_buffer_master.append(message)	
+					
 					last_message = message
 					downtime = time.time() + 0.5
 
 
-		#except StandardError as error:
-		#	print error
-		#	print "MessageHandler.__buffering_master_messages"
-		#	interrupt_main()
+		except StandardError as error:
+			print error
+			print "MessageHandler.__buffering_master_messages"
+			interrupt_main()
 
 
 	def __buffering_slave_messages_thread(self):
-		#try:
-			#__buffering_slave_messages_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MessageHandler.__buffering_slave_messages_watchdog")
-			#__buffering_slave_messages_watchdog.StartWatchdog()
-
-			last_message = 'This message will never be heard'
+		try:
+			###### SET THREAD STARTED FLAG  ######
 			self.__slave_thread_started = True
 
+			###### SETTING UP LOCAL VARIABLES  ######
+			last_message = 'This message will never be heard'
+
 			###### SETTING UP UDP SOCKET ######
-			port = ('', MASTER_TO_SLAVE_PORT)
-			udp = socket(AF_INET, SOCK_DGRAM)
-			udp.bind(port)
-			udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+			try:
+				port = ('', MASTER_TO_SLAVE_PORT)
+				udp = socket(AF_INET, SOCK_DGRAM)
+				udp.bind(port)
+				udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+
+			except IOError as error:
+				print error
+				print "MessageHandler.__buffering_slave_messages_thread:"
+				print "Failed setting up udp sockets"
+				interrupt_main()
 			
 			downtime = time.time() + 0.5
 
 			while True:
-				#__buffering_slave_messages_watchdog.PetWatchdog()
-				data, address = udp.recvfrom(1024)
+				# RECIEVE AND CHECK #
+				try:
+					data, address = udp.recvfrom(1024)
+
+				except IOError as error:
+					print error
+					print "MessageHandler.__buffering_slave_messages_thread:"
+					print "udp.recvfrom(1024) failed!"
+					print "Sleeping 1 sec.."
+					time.sleep(1)
+
 				message = self.__errorcheck(data)
 				
 				###### APPENDING NEW MESSAGES IN BUFFER ######
@@ -214,13 +248,12 @@ class MessageHandler:
 					last_message = message
 					downtime = time.time() + 0.5
 
-		#except StandardError as error:
-		#	print error
-		#	print "MessageHandler.__buffering_slave_messages"
-		#	interrupt_main()
+		except StandardError as error:
+			print error
+			print "MessageHandler.__buffering_slave_messages"
+			interrupt_main()
 
 	def __errorcheck(self,data):
-		#with watchdogs.WatchdogTimer(1):
 			if data[0]=='<' and data[len(data)-1]=='>':
 
 				counter=1

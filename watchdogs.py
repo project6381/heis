@@ -20,7 +20,7 @@ class WatchdogTimer(Exception):
         raise self
  
     def __str__(self):
-        return "The code you executed took more than %ds to complete" % self.time
+        return "WatchdogTimer: The code you executed took more than %ds to complete" % self.time
 
 # Kilde for klassen ThreadWatchdog: http://liveincode.blogspot.com/2012/11/watchdog-timer-in-python.html
 class ThreadWatchdog(object):
