@@ -2,7 +2,7 @@ from socket import *
 from threading import Thread, Lock
 import time
 from ported_driver.constants import N_FLOORS
-from config_parameters import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID, TICK
+from config_parameters import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, N_ELEVATORS, MY_ID, TICK, NET_WAIT
 import watchdogs
 from thread import interrupt_main
 
@@ -172,7 +172,8 @@ class MessageHandler:
 				print "Failed setting up udp sockets"
 				interrupt_main()
 
-			downtime = time.time() + 0.5
+			###### LIMIT NETWORK LOADING ######
+			downtime = time.time() + NET_WAIT
 
 			while True:
 				# RECIEVE AND CHECK #
@@ -197,7 +198,9 @@ class MessageHandler:
 							self.__receive_buffer_master.append(message)	
 					
 					last_message = message
-					downtime = time.time() + 0.5
+
+					#LIMIT NETWORK LOADING #
+					downtime = time.time() + NET_WAIT
 
 
 		except StandardError as error:
@@ -227,7 +230,8 @@ class MessageHandler:
 				print "Failed setting up udp sockets"
 				interrupt_main()
 			
-			downtime = time.time() + 0.5
+			###### LIMIT NETWORK LOADING ######
+			downtime = time.time() + NET_WAIT
 
 			while True:
 				# RECIEVE AND CHECK #
@@ -251,7 +255,9 @@ class MessageHandler:
 						with self.__receive_buffer_slave_key:
 							self.__receive_buffer_slave.append(message)		
 					last_message = message
-					downtime = time.time() + 0.5
+
+					#LIMIT NETWORK LOADING #
+					downtime = time.time() + NET_WAIT
 
 		except StandardError as error:
 			print error

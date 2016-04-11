@@ -1,5 +1,5 @@
 from ported_driver.constants import N_FLOORS, LAST_FLOOR, NEXT_FLOOR, DIRECTION, DIRN_STOP, DIRN_DOWN, DIRN_UP
-from config_parameters import MASTER_TO_MASTER_PORT, MASTER_BUTTON_ORDERS_PORT, N_ELEVATORS
+from config_parameters import MASTER_TO_MASTER_PORT, MASTER_BUTTON_ORDERS_PORT, N_ELEVATORS, MASTER_TIMEOUT, ORDER_ID_TIMEOUT, SLAVE_TIMEOUT
 from socket import *
 from random import randint
 from threading import Thread, Lock
@@ -33,8 +33,8 @@ class MasterHandler:
 		self.__last_orders_up = [0 for floor in range(0,N_FLOORS)]
 		self.__last_orders_down = [0 for floor in range(0,N_FLOORS)]
 
-		self.__downtime_order_id = time.time() + 2
-		self.__downtime_slaves_online = [time.time() + 2 for elevator in range(0,N_ELEVATORS)]
+		self.__order_id_timeout_time = time.time() + ORDER_ID_TIMEOUT ######################################################### order id downtime 2s
+		self.__online_slaves_timeout_time = [time.time() + SLAVE_TIMEOUT for elevator in range(0,N_ELEVATORS)] ########################################## slaves downtime 1s
 		self.__timeout_order_id = 0
 
 	def get_orders(self):
@@ -56,7 +56,7 @@ class MasterHandler:
 	def update_elevator_online(self,slave_id):
 		with self.__slaves_online_key:
 			self.__slaves_online[slave_id-1] = 1
-			self.__downtime_slaves_online[slave_id-1] = time.time() + 1
+			self.__online_slaves_timeout_time[slave_id-1] = time.time() + SLAVE_TIMEOUT ########################################## slaves downtime 1s
 	
 	def check_master_alive(self):	
 		###### RETURN THE LOWEST ELEVATOR ID ######
@@ -85,24 +85,32 @@ class MasterHandler:
 				self.__orders_down[floor] = 1	
 
 	def update_sync_state(self,orders_id,slave_id):				
+		###### CHECK IF SLAVE IS SYNCED ######
 		if self.__orders_id == orders_id:
 			self.__synced_elevators[slave_id-1] = 1
 
+		###### MARK SLAVE AS ONLINE ######
 		self.__slaves_online[slave_id-1] = 1
-		self.__downtime_slaves_online[slave_id-1] = time.time() + 1
+		
+		###### SET A NEW TIMEOUT TIME FOR THE SLAVE ######
+		self.__online_slaves_timeout_time[slave_id-1] = time.time() + SLAVE_TIMEOUT ######################################### slaves downtime 1s
+		
+		###### UPDATE ACTIVE SLAVES COUNT ###### 
 		active_slaves = self.__slaves_online.count(1)
 
 		###### UPDATES ORDERS WHEN ALL ACTIVE SLAVES ARE SYNCED OR TIMED OUT ######
 		if ( (self.__orders_up != self.__last_orders_up) or (self.__orders_down != self.__last_orders_down) ) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_order_id == 1):
 			self.__orders_id += 1
+			
 			if self.__orders_id > 9999: 
 				self.__orders_id = 1
+			
 			self.__last_orders_up = self.__orders_up[:]
 			self.__last_orders_down = self.__orders_down[:]
-			self.__downtime_order_id = time.time() + 2
+			self.__order_id_timeout_time = time.time() + ORDER_ID_TIMEOUT ######################################################### order id downtime 2s
 			self.__timeout_order_id = 0
 			
-		self.__assign_orders()
+		self.__assign_orders() ########################################################## SHOULD THIS NOT BE UNDER THE IF ABOVE?
 
 
 	def __assign_orders(self):
@@ -177,11 +185,10 @@ class MasterHandler:
 		try:
 			###### SET THREAD STARTED FLAG  ######
 			self.__alive_thread_started = True
-			downtime_masters_online = [time.time() + 2 for elevator in range(0,N_ELEVATORS)]
-
-
+		
 			###### SETTING UP LOCAL VARIABLES  ######
 			#downtime = [time.time() + 3 for elevator in range(0,N_ELEVATORS)]
+			downtime_masters_online = [time.time() + MASTER_TIMEOUT for elevator in range(0,N_ELEVATORS)] ######################################### downtime masters 2s
 			last_message = 'This message will never be heard'
 
 			###### SETTING UP UDP SOCKET ######
@@ -216,27 +223,30 @@ class MasterHandler:
 
 				master_id = self.__errorcheck(data)
 	
-				###### UPDATE LIST OF ACTIVE MASTERS ######
+				# MARK LAST RECIEVED MASTER AS ONLINE AND SET NEW TIMEOUT TIME #
 				if master_id is not None:
 					with self.__masters_online_key:
 						self.__masters_online[int(master_id)-1] = 1
-						print self.__masters_online	
-						downtime_masters_online[int(master_id)-1] = time.time() + 2
+						#print self.__masters_online	
+						downtime_masters_online[int(master_id)-1] = time.time() + MASTER_TIMEOUT #########################################################downtime masters 2s
 						# In case network is down #
 						master_id = None
-
+				
+				# MARK TIMED OUT MASTERS AS OFFLINE #
 				with self.__masters_online_key:
 					for elevator in range(0,N_ELEVATORS):
 						if downtime_masters_online[elevator] < time.time():
 							self.__masters_online[elevator] = 0
 
+				# MARK TIMED OUT SLAVES AS OFFLINE #
 				with self.__slaves_online_key:
 					for elevator in range(0,N_ELEVATORS):
-						if self.__downtime_slaves_online[elevator] < time.time():
+						if self.__online_slaves_timeout_time[elevator] < time.time():
 							self.__slaves_online[elevator] = 0
 
+				# CHECK IF ORDER ID HAS TIMED OUT #
 				with self.__order_id_key:
-					if self.__downtime_order_id < time.time():
+					if self.__order_id_timeout_time < time.time():
 						self.__timeout_order_id = 1	
 
 		except StandardError as error:

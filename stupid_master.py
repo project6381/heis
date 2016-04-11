@@ -1,7 +1,7 @@
 from master_handler import MasterHandler
 from message_handler import MessageHandler
 from ported_driver.constants import DIRN_DOWN, DIRN_UP, DIRN_STOP, N_FLOORS
-from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, N_ELEVATORS, MY_ID, TICK
+from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, N_ELEVATORS, MY_ID, TICK, NET_WAIT
 import time
 from collections import Counter
 import sys
@@ -39,7 +39,7 @@ def main():
 
 			print "I am NOT master, my id is: " + str(MY_ID)
 
-			time.sleep(TICK/10)
+			time.sleep(TICK)
 
 
 			while active_master:
@@ -62,14 +62,15 @@ def main():
 
 				(orders_up,orders_down,orders_id) = master_handler.get_orders()
 
+				###### LIMIT NETWORK LOADING ######
 				if downtime_send < time.time():	
 					message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
-					downtime_send = time.time() + 0.1
+					downtime_send = time.time() + NET_WAIT
 				
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
 
-				time.sleep(TICK/10)
+				time.sleep(TICK)
 		
 		#except KeyboardInterrupt:
 		#	pass
