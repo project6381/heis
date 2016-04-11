@@ -51,8 +51,10 @@ def main():
 					slave_driver.master_order_run_elevator(master_message['orders_up'][:],master_message['orders_down'][:])	
 
 					(floor_up,floor_down) = slave_driver.get_floor_panel()
+
+					move_timeout = slave_driver.read_move_timeout()
 			
-					if downtime_send < time.time():
+					if (downtime_send < time.time()) and (move_timeout == False):
 						message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
 						downtime_send = time.time() + 0.1
 

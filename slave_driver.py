@@ -19,6 +19,8 @@ class SlaveDriver:
 		self.__floor_panel_key = Lock()
 		self.__position_key = Lock()
 		self.__offline_mode_key = Lock()
+		self.__move_timeout_key = Lock()
+		self.__move_timeout = False
 		self.__elevator_orders = [[0 for button in range(0,N_BUTTONS)] for floor in range(0,N_FLOORS)]
 		self.__master_orders_up = [0 for floor in range(0,N_FLOORS)]
 		self.__master_orders_down = [0 for floor in range(0,N_FLOORS)]
@@ -31,7 +33,6 @@ class SlaveDriver:
 		self.__last_master_id = 0
 		self.__offline_mode = False
 		self.__position = (0,0,DIRN_STOP)
-
 		self.__thread_run_elevator = Thread(target = self.__run_elevator_thread, args = (),)
 		self.__thread_read_button = Thread(target = self.__read_button_thread, args = (),)
 		self.__thread_set_indicators = Thread(target = self.__set_indicators_thread, args = (),)
@@ -78,6 +79,10 @@ class SlaveDriver:
 	def set_offline_mode(self,offline_mode):
 		with self.__offline_mode_key:
 			self.__offline_mode = offline_mode
+
+	def read_move_timeout(self):
+		with self.__move_timeout_key:
+			return self.__move_timeout
 
 
 	def __start(self):
@@ -272,7 +277,11 @@ class SlaveDriver:
 					if read_floor != last_read_floor:
 						move_timeout = time.time() + 4
 						last_read_floor = read_floor
-					assert move_timeout > time.time(), "unknown error: elevator not moving"
+					with self.__move_timeout_key:
+						if move_timeout < time.time():
+							self.__move_timeout = True
+						else:
+							self.__move_timeout = False
 
 				###### RUNS ELEVATOR IN DOWNWARD DIRECTION ######
 				elif last_floor > next_floor:
@@ -287,7 +296,11 @@ class SlaveDriver:
 					if read_floor != last_read_floor:
 						move_timeout = time.time() + 4
 						last_read_floor = read_floor
-					assert move_timeout > time.time(), "unknown error: elevator not moving"
+					with self.__move_timeout_key:
+						if move_timeout < time.time():
+							self.__move_timeout = True
+						else:
+							self.__move_timeout = False
 			
 				#print " my_id:" + str(MY_ID) + " up:" + str(self.__saved_master_orders_up) + " saved_up:" + str(self.__master_orders_up) + " down:" + str(self.__saved_master_orders_down) + " saved_down" + str(self.__master_orders_down) + " internal" + str(self.__internal_orders) + " saved_internal" + str(self.__saved_internal_orders) + " orders:" + str(self.__elevator_orders) + " n:" + str(next_floor) + " l:" + str(last_floor)
 
