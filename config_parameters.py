@@ -1,5 +1,5 @@
 # Constants
-MY_ID = 1
+MY_ID = 2
 
 # Number of elevators
 N_ELEVATORS = 3
