@@ -414,16 +414,16 @@ class SlaveDriver:
 								if self.__saved_master_orders_up[floor] == MY_ID:
 									self.__elevator_orders[floor][BUTTON_UP] = 1
 								####################################### BURDE KANSKJE FJERNES #####################################################
-								else:
-									self.__elevator_orders[floor][BUTTON_UP] = 0 # LAR MASTER FJERNE ORDRE
+								#else:
+								#	self.__elevator_orders[floor][BUTTON_UP] = 0 # LAR MASTER FJERNE ORDRE
 								###################################################################################################################
 
 								###### DOWN CALLS ######
 								if self.__saved_master_orders_down[floor] == MY_ID:
 									self.__elevator_orders[floor][BUTTON_DOWN] = 1
 								####################################### BURDE KANSKJE FJERNES #####################################################
-								else:
-									self.__elevator_orders[floor][BUTTON_DOWN] = 0 # LAR MASTER FJERNE ORDRE
+								#else:
+								#	self.__elevator_orders[floor][BUTTON_DOWN] = 0 # LAR MASTER FJERNE ORDRE
 								###################################################################################################################
 
 
