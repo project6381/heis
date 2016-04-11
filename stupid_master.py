@@ -8,14 +8,12 @@ import sys
 import subprocess
 
 def main():
-	SLAVE_TIMEOUT = 2
-	SLAVE_MESSAGE_TIMEOUT = 1
+
 	#instantiating classes
 	message_handler = MessageHandler()
 	master_handler = MasterHandler()
-	active_master = False
 	downtime_send = time.time()
-	downtime_receive = time.time()
+	active_master = False
 
 	while True:
 		#try:
@@ -30,17 +28,14 @@ def main():
 					master_handler.update_elevator_online(slave_message['slave_id'])			
 
 			print "I am NOT master, my id is: " + str(MY_ID)
+
 			time.sleep(0.01)
 
 			while active_master:
 				
 				master_handler.update_master_alive(MY_ID)
 
-				if downtime_receive < time.time():
-					slave_message = message_handler.receive_from_slave()
-					downtime_receive = time.time()
-
-				#slave_message = message_handler.receive_from_slave()
+				slave_message = message_handler.receive_from_slave()
 
 				if slave_message is not None:
 				

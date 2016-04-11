@@ -16,21 +16,21 @@ class MessageHandler:
 		self.__master_thread_started = False
 		self.__slave_thread_started = False
 		
-		self.__slave_message = {'slave_floor_up': [0]*4,
-								'slave_floor_down': [0]*4,
+		self.__slave_message = {'slave_floor_up': [0 for floor in range(0,N_FLOORS)],
+								'slave_floor_down': [0 for floor in range(0,N_FLOORS)],
 								'slave_id': 0,
 								'last_floor': 0,
 								'next_floor': 0,
 								'direction': 0,
 								'orders_id': 0}
 
-		self.__master_message = {'orders_up': [0]*4,
-								'orders_down': [0]*4,
+		self.__master_message = {'orders_up': [0 for floor in range(0,N_FLOORS)],
+								'orders_down': [0 for floor in range(0,N_FLOORS)],
 								'master_id': 0,
 								'orders_id': 0}
 
-		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages, args = (), name = "Buffering master thread")
-		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages, args = (),name = "Buffering slave thread")
+		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages_thread, args = (), name = "Buffering master thread")
+		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages_thread, args = (),name = "Buffering slave thread")
 	
 
 	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction,orders_id):
@@ -48,10 +48,6 @@ class MessageHandler:
 
 			message = "%s%s%i%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction,orders_id)
 			self.__send(message,SLAVE_TO_MASTER_PORT)
-
-			print "send_to_master: " + str(time.time())
-
-			time.sleep(0.001)
 
 
 	def send_to_slave(self,orders_up,orders_down,master_id,orders_id):
@@ -71,8 +67,6 @@ class MessageHandler:
 			message += orders_id
 			
 			self.__send(message,MASTER_TO_SLAVE_PORT)
-
-			print "send_to_slave"
 			
 
 
@@ -82,16 +76,14 @@ class MessageHandler:
 
 			if message is not None:
 
-				for i in range (0,N_FLOORS):
-					self.__master_message['orders_up'][i] = int(message[i])
+				for floor in range (0,N_FLOORS):
+					self.__master_message['orders_up'][floor] = int(message[floor])
 
-				for i in range (0,N_FLOORS):
-					self.__master_message['orders_down'][i] = int(message[4+i])
+				for floor in range (0,N_FLOORS):
+					self.__master_message['orders_down'][floor] = int(message[4+floor])
 
 				self.__master_message['master_id'] = int(message[8])
 				self.__master_message['orders_id'] = int(message[9:])
-
-				print "receive_from_master"
 
 				return self.__master_message
 
@@ -102,17 +94,15 @@ class MessageHandler:
 			
 			if message is not None:
 
-				for i in range (0,4):
-						self.__slave_message['slave_floor_up'][i] = int(message[i])
-						self.__slave_message['slave_floor_down'][i] = int(message[4+i]) 	
+				for floor in range (0,N_FLOORS):
+						self.__slave_message['slave_floor_up'][floor] = int(message[floor])
+						self.__slave_message['slave_floor_down'][floor] = int(message[4+floor]) 	
 
 				self.__slave_message['slave_id'] = int(message[8])
 				self.__slave_message['last_floor'] = int(message[9])
 				self.__slave_message['next_floor'] = int(message[10])
 				self.__slave_message['direction'] = int(message[11])
 				self.__slave_message['orders_id'] = int(message[12:])
-
-				print "receive_from_slave: " + str(time.time())
 
 				return self.__slave_message
 
@@ -157,7 +147,7 @@ class MessageHandler:
 			thread.daemon = True # Terminate thread when "main" is finished
 			thread.start()
 
-	def __buffering_master_messages(self):
+	def __buffering_master_messages_thread(self):
 		#try:
 			#__buffering_master_messages_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MessageHandler.__buffering_master_messages_watchdog")
 			#__buffering_master_messages_watchdog.StartWatchdog()
@@ -192,7 +182,7 @@ class MessageHandler:
 		#	interrupt_main()
 
 
-	def __buffering_slave_messages(self):
+	def __buffering_slave_messages_thread(self):
 		#try:
 			#__buffering_slave_messages_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MessageHandler.__buffering_slave_messages_watchdog")
 			#__buffering_slave_messages_watchdog.StartWatchdog()

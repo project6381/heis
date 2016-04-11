@@ -12,25 +12,26 @@ from thread import interrupt_main
 class MasterHandler:
 
 	def __init__(self):
-		self.__elevator_positions = [ [0]*N_ELEVATORS ]*N_ELEVATORS
-		self.__button_orders = [0]*N_FLOORS*2
-		self.__elevator_orders = [0]*N_FLOORS*2
+		#self.__elevator_positions = [ [0 for position in range(0,3)] ]*N_ELEVATORS
+		self.__elevator_positions = [[0 for position in range(0,3)] for elevator in range(0,N_ELEVATORS)]
+		self.__button_orders = [0 for floor in range(0,N_FLOORS*2)]
+		self.__elevator_orders = [0 for floor in range(0,N_FLOORS*2)]
 
-		self.__active_masters = [0]*N_ELEVATORS
+		self.__active_masters = [0 for elevator in range(0,N_ELEVATORS)]
 		self.__orders_id = 1
-		self.__synced_elevators = [0]*N_ELEVATORS
-		self.__elevator_online = [0]*N_ELEVATORS
+		self.__synced_elevators = [0 for elevator in range(0,N_ELEVATORS)]
+		self.__elevator_online = [0 for elevator in range(0,N_ELEVATORS)]
 		self.__active_masters_key = Lock()
 		self.__master_alive_thread_started = False
-		self.__thread_buffering_master_alive = Thread(target = self.__master_alive_message_handler, args = (),name = "Buffering master alive thread")
+		self.__thread_buffering_master_alive = Thread(target = self.__master_alive_message_handler_thread, args = (),name = "Buffering master alive thread")
 
-		self.__orders_up = [0]*N_FLOORS
-		self.__orders_down = [0]*N_FLOORS
-		self.__last_orders_up = [0]*N_FLOORS
-		self.__last_orders_down = [0]*N_FLOORS
+		self.__orders_up = [0 for floor in range(0,N_FLOORS)]
+		self.__orders_down = [0 for floor in range(0,N_FLOORS)]
+		self.__last_orders_up = [0 for floor in range(0,N_FLOORS)]
+		self.__last_orders_down = [0 for floor in range(0,N_FLOORS)]
 
 		self.__downtime_order_id = time.time() + 2
-		self.__downtime_elevator_online = [time.time() + 3]*N_ELEVATORS
+		self.__downtime_elevator_online = [time.time() + 3 for elevator in range(0,N_ELEVATORS)]
 		self.__timeout_active_slaves = 0
 
 
@@ -56,9 +57,9 @@ class MasterHandler:
 			if self.__master_alive_thread_started is not True:
 				self.__start(self.__thread_buffering_master_alive)
 
-			for i in range(0,N_ELEVATORS):
-				if self.__active_masters[i] == 1:
-					return i+1
+			for elevator in range(0,N_ELEVATORS):
+				if self.__active_masters[elevator] == 1:
+					return elevator+1
 			return -1 
 
 	def clear_completed_orders(self,direction,last_floor,next_floor):
@@ -73,13 +74,13 @@ class MasterHandler:
 
 	def add_new_orders(self,slave_floor_up,slave_floor_down):
 		#with watchdogs.WatchdogTimer(1):
-			for i in range(0,N_FLOORS):
-				if slave_floor_up[i] == 1: 
-					self.__orders_up[i] = 1
+			for floor in range(0,N_FLOORS):
+				if slave_floor_up[floor] == 1: 
+					self.__orders_up[floor] = 1
 
-			for i in range(0,N_FLOORS):
-				if slave_floor_down[i] == 1: 
-					self.__orders_down[i] = 1	
+			for floor in range(0,N_FLOORS):
+				if slave_floor_down[floor] == 1: 
+					self.__orders_down[floor] = 1	
 
 	def update_sync_state(self,orders_id,slave_id):
 		#with watchdogs.WatchdogTimer(1):			
@@ -171,7 +172,7 @@ class MasterHandler:
 
 
 		
-	def __master_alive_message_handler(self):
+	def __master_alive_message_handler_thread(self):
 		#try:
 			#__master_alive_message_handler_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MasterHandler.__master_alive_message_handler_watchdog")
 			#__master_alive_message_handler_watchdog.StartWatchdog()
@@ -195,26 +196,41 @@ class MasterHandler:
 						self.__active_masters[int(message)-1] = 1		
 						downtime[int(message)-1] = time.time() + 3
 				
-				for i in range(0,N_ELEVATORS):
-					if downtime[i] < time.time():
-						self.__active_masters[i] = 0
-
 				
-
-				''' quick fix '''
-				for i in range(0,N_ELEVATORS):
-					if self.__downtime_elevator_online[i] < time.time():
-						self.__elevator_online[i] = 0
-
-
-				if self.__downtime_order_id < time.time():
-					for i in range(0,N_ELEVATORS):
-						self.__timeout_active_slaves = 1
 
 		#except StandardError as error:
 		#	print error
 		#	print "MasterHandler.__master_alive_message_handler"
 		#	interrupt_main()
+				
+	
+	def __elevator_timeout_thread(self):
+			#try:
+
+				#__elevator_timeout_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MasterHandler.__elevator_timeout_thread_watchdog")
+				#__elevator_timeout_thread_watchdog.StartWatchdog()	
+				
+				while True:
+					for elevator in range(0,N_ELEVATORS):
+						if downtime[elevator] < time.time():
+							self.__active_masters[elevator] = 0
+
+					for elevator in range(0,N_ELEVATORS):
+						if self.__downtime_elevator_online[elevator] < time.time():
+							self.__elevator_online[elevator] = 0
+
+
+					if self.__downtime_order_id < time.time():
+						for elevator in range(0,N_ELEVATORS):
+							self.__timeout_active_slaves = 1
+
+					time.sleep(0.1)
+
+		#except StandardError as error:
+		#	print error
+		#	print "MasterHandler.__elevator_timeout_thread_thread"
+		#	interrupt_main()
+	
 
 
 	def __send(self, data, port):
