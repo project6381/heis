@@ -40,10 +40,12 @@ class MasterHandler:
 		return (self.__elevator_orders_up,self.__elevator_orders_down,self.__orders_id)
 
 	def update_master_alive(self, elevator_id):			
-		###### START THREAD IF NOT ALREADY RUNNING ######
+		###### START THREADS IF NOT ALREADY RUNNING ######
 		if self.__master_alive_thread_started is not True:
 			self.__start(self.__thread_master_alive)
 
+		if self.__timeout_thread_started is not True:
+			self.__start(self.__thread_timeout)
 		self.__send(str(elevator_id),MASTER_TO_MASTER_PORT)
 
 
@@ -215,7 +217,8 @@ class MasterHandler:
 				###### UPDATE LIST OF ACTIVE MASTERS ######
 				if master_id is not None:
 					with self.__active_masters_key:
-						self.__active_masters[int(master_id)-1] = 1		
+						self.__active_masters[int(master_id)-1] = 1
+						print self.__active_masters	
 						downtime[int(master_id)-1] = time.time() + 2
 						# In case network is down #
 						master_id = None		
@@ -233,7 +236,10 @@ class MasterHandler:
 			__timeout_thread_watchdog.StartWatchdog()	
 			
 			self.__timeout_thread_started = True
+			downtime = [time.time() + 2 for elevator in range(0,N_ELEVATORS)]
+			#downtime[int(master_id)-1] = time.time() + 2
 			while True:
+
 				__timeout_thread_watchdog.PetWatchdog()
 				for elevator in range(0,N_ELEVATORS):
 					if downtime[elevator] < time.time():
