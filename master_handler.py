@@ -63,8 +63,8 @@ class MasterHandler:
 		with self.__masters_online_key:
 			for elevator in range(0,N_ELEVATORS):
 				if self.__masters_online[elevator] == 1:
-					return elevator+1
-		return -1 
+					return elevator+1cd
+		return -1
 
 	def clear_completed_orders(self,direction,last_floor,next_floor):
 		if last_floor == next_floor:

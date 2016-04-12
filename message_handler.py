@@ -157,7 +157,7 @@ class MessageHandler:
 			self.__master_thread_started = True
 
 			###### SETTING UP LOCAL VARIABLES  ######
-			last_message = 'This message will never be heard'
+			#last_message = 'This message will never be heard'
 
 			###### SETTING UP UDP SOCKET ######
 			try:
@@ -172,7 +172,7 @@ class MessageHandler:
 				print "Failed setting up udp sockets"
 				interrupt_main()
 
-			downtime = time.time() + 0.5
+			#downtime = time.time() + 0.5
 
 			while True:
 				# RECIEVE AND CHECK #
@@ -191,13 +191,14 @@ class MessageHandler:
 				message = self.__errorcheck(data)
 
 				# APPENDING NEW MESSAGES IN BUFFER #
-				if (message != last_message) or (downtime < time.time()):
-					if message is not None:
-						with self.__receive_buffer_master_key:
+				if (message is not None):
+					with self.__receive_buffer_master_key:
+						if message in self.__receive_buffer_master:
+							pass
+						else:	
 							self.__receive_buffer_master.append(message)	
-					
-					last_message = message
-					downtime = time.time() + 0.5
+					#last_message = message
+					#downtime = time.time() + 0.5
 
 
 		except StandardError as error:
@@ -212,7 +213,7 @@ class MessageHandler:
 			self.__slave_thread_started = True
 
 			###### SETTING UP LOCAL VARIABLES  ######
-			last_message = 'This message will never be heard'
+			#last_message = 'This message will never be heard'
 
 			###### SETTING UP UDP SOCKET ######
 			try:
@@ -227,7 +228,7 @@ class MessageHandler:
 				print "Failed setting up udp sockets"
 				interrupt_main()
 			
-			downtime = time.time() + 0.5
+			#downtime = time.time() + 0.5
 
 			while True:
 				# RECIEVE AND CHECK #
@@ -244,14 +245,17 @@ class MessageHandler:
 					#############################################################################################
 
 				message = self.__errorcheck(data)
-				
+				#print message
 				###### APPENDING NEW MESSAGES IN BUFFER ######
-				if (message != last_message) or (downtime < time.time()):
-					if message is not None:
-						with self.__receive_buffer_slave_key:
-							self.__receive_buffer_slave.append(message)		
-					last_message = message
-					downtime = time.time() + 0.5
+				if (message is not None):
+					with self.__receive_buffer_slave_key:
+						if message in self.__receive_buffer_slave:
+							pass
+						else:	
+							self.__receive_buffer_slave.append(message)
+							#print self.__receive_buffer_slave	
+					#last_message = message
+					#downtime = time.time() + 0.5
 
 		except StandardError as error:
 			print error

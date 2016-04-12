@@ -13,10 +13,10 @@ def main():
 	#instantiating classes
 	message_handler = MessageHandler()
 	master_handler = MasterHandler()
-	downtime_send = time.time()
+	#downtime_send = time.time()
 	active_master = False
 	startup = True
-	startup_time = time.time() + 2
+	startup_time = time.time() + 1
 	while startup:
 		print "startup"
 		time.sleep(0.1)
@@ -39,7 +39,7 @@ def main():
 
 			print "I am NOT master, my id is: " + str(MY_ID)
 
-			time.sleep(TICK/10)
+			time.sleep(TICK)
 
 
 			while active_master:
@@ -62,14 +62,14 @@ def main():
 
 				(orders_up,orders_down,orders_id) = master_handler.get_orders()
 
-				if downtime_send < time.time():	
-					message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
-					downtime_send = time.time() + 0.1
-				
+				#if downtime_send < time.time():	
+				#	message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
+				#	downtime_send = time.time() + 0.1
+				message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
 
-				time.sleep(TICK/10)
+				time.sleep(TICK)
 		
 		#except KeyboardInterrupt:
 		#	pass

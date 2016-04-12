@@ -1,7 +1,7 @@
 from slave_driver import SlaveDriver
 from message_handler import MessageHandler
 from ported_driver.constants import N_FLOORS
-from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, MY_ID, TICK
+from config_parameters import SLAVE_TO_MASTER_PORT, MASTER_TO_SLAVE_PORT, MY_ID, TICK, N_ELEVATORS
 import time
 import sys
 import subprocess
@@ -15,7 +15,7 @@ def main():
 	message_handler = MessageHandler()
 	slave_driver = SlaveDriver()
 	orders_id = 0
-	downtime_send = time.time()
+	#downtime_send = time.time()
 	orders_ok = True
 
 
@@ -54,12 +54,12 @@ def main():
 
 					move_timeout = slave_driver.read_move_timeout()
 			
-					if (downtime_send < time.time()) and (move_timeout == False):
+					if (move_timeout == False):
 						message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
-						downtime_send = time.time() + 0.1
+						#downtime_send = time.time() + 0.1
 
 
-			time.sleep(TICK/8)
+			time.sleep(TICK*N_ELEVATORS*3)
 
 		#except KeyboardInterrupt:
 		#	pass
