@@ -183,12 +183,13 @@ class SlaveDriver:
 	def __run_elevator_thread(self):
 		##### RUNS THE ELEVATOR ACCORDING TO ELEVATOR ORDERS ######
 		try:
-			__run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(2,"watchdog event: SlaveDriver.__run_elevator_thread")
+			__run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(5,"watchdog event: SlaveDriver.__run_elevator_thread")
 			__run_elevator_thread_watchdog.StartWatchdog()
 
 			last_floor = 0
 			next_floor = 0
 			next_button = 0
+			last_direction = DIRN_STOP
 			direction = DIRN_STOP
 			last_read_floor = -1
 
@@ -226,43 +227,71 @@ class SlaveDriver:
 				###### READS LAST FLOOR SIGNAL ######
 				read_floor = self.__elevator_interface.get_floor_sensor_signal()
 				if read_floor >= 0:
-					last_floor = read_floor	
+					last_floor = read_floor
 
-				###### SETS DIRECTION TO STOP WHEN ELEVATOR REACHES HIGHEST/LOWEST ASSIGNED ELEVATOR ORDER ######
+				###### SETS DIRECTION TO STOP WHEN ELEVATOR REACHES HIGHEST/LOWEST ELEVATOR ORDER ######
 				if (direction == DIRN_UP) and (elevator_orders_max <= last_floor):
+					last_direction = direction
 					direction = DIRN_STOP
 				elif (direction == DIRN_DOWN) and (elevator_orders_min >= last_floor):
+					last_direction = direction
 					direction = DIRN_STOP
+				
 
 				###### STOPS ELEVATOR AND CLEARS THE ELEVATOR ORDER ######
 				if last_floor == next_floor:
 					####### STOPS ELEVATOR #######	
 					self.__elevator_interface.set_motor_direction(DIRN_STOP)
 
-					###### CLEARS COMPLETE ELEVATOR ORDERS ######
-					if direction == DIRN_STOP:
-						with self.__elevator_orders_key:
-							self.__elevator_orders[next_floor][BUTTON_UP] = 0
-							self.__elevator_orders[next_floor][BUTTON_DOWN] = 0
-							self.__elevator_orders[next_floor][BUTTON_INTERNAL] = 0
-					elif direction == DIRN_UP:
-						with self.__elevator_orders_key:
-							self.__elevator_orders[next_floor][BUTTON_UP] = 0
-							self.__elevator_orders[next_floor][BUTTON_INTERNAL] = 0
-					elif direction == DIRN_DOWN:
-						with self.__elevator_orders_key:
-							self.__elevator_orders[next_floor][BUTTON_DOWN] = 0
-							self.__elevator_orders[next_floor][BUTTON_INTERNAL] = 0
-
 					###### SETS ELEVATOR POSITION ######
 					with self.__position_key:
 						self.__position = (last_floor,next_floor,direction)
 
-					##### STOPS AT FLOOR FOR 1s ######
+					###### STOPS AT FLOOR FOR 1 SECOND ######
+					time.sleep(1)
+
+					###### CHECKS THAT ELEVATOR ACTUALLY STOPPED ######
+					read_floor = self.__elevator_interface.get_floor_sensor_signal()
+					if read_floor != last_floor:
+						print "read_floor != last_floor"
+						print direction
+						###### RUNS ELEVATOR IN OPPOSITE DIRECTION ######
+						if direction == DIRN_STOP:
+							if last_direction == DIRN_UP:
+								self.__elevator_interface.set_motor_direction(DIRN_DOWN)
+							elif last_direction == DIRN_DOWN:
+								self.__elevator_interface.set_motor_direction(DIRN_UP)
+						if direction == DIRN_UP:
+								self.__elevator_interface.set_motor_direction(DIRN_DOWN)
+						elif direction == DIRN_DOWN:
+								self.__elevator_interface.set_motor_direction(DIRN_UP)
+
+						###### STOPS ELEVATOR WHEN IT REACHES A FLOOR ######
+						while (read_floor < 0):
+							read_floor = self.__elevator_interface.get_floor_sensor_signal()
+						self.__elevator_interface.set_motor_direction(DIRN_STOP)
+
+					###### CLEARS COMPLETE ELEVATOR ORDERS ######
+					if read_floor == last_floor:
+						if direction == DIRN_STOP:
+							with self.__elevator_orders_key:
+								self.__elevator_orders[next_floor][BUTTON_UP] = 0
+								self.__elevator_orders[next_floor][BUTTON_DOWN] = 0
+								self.__elevator_orders[next_floor][BUTTON_INTERNAL] = 0
+						elif direction == DIRN_UP:
+							with self.__elevator_orders_key:
+								self.__elevator_orders[next_floor][BUTTON_UP] = 0
+								self.__elevator_orders[next_floor][BUTTON_INTERNAL] = 0
+						elif direction == DIRN_DOWN:
+							with self.__elevator_orders_key:
+								self.__elevator_orders[next_floor][BUTTON_DOWN] = 0
+								self.__elevator_orders[next_floor][BUTTON_INTERNAL] = 0
+
+					###### STOPS AT FLOOR FOR 1 MORE SECOND ######
 					time.sleep(1)
 
 					###### RESETS ELEVATOR MOVEMENT CHECK ######
-					move_timeout = time.time() + 4
+					move_timeout = time.time() + 5
 
 				###### RUNS ELEVATOR IN UPWARD DIRECTION ######
 				elif last_floor < next_floor:
@@ -275,7 +304,7 @@ class SlaveDriver:
 
 					###### CHECKS THAT THE ELEVATOR IS MOVING ######
 					if read_floor != last_read_floor:
-						move_timeout = time.time() + 4
+						move_timeout = time.time() + 5
 						last_read_floor = read_floor
 					with self.__move_timeout_key:
 						if move_timeout < time.time():
@@ -294,13 +323,16 @@ class SlaveDriver:
 
 					###### CHECKS THAT THE ELEVATOR IS MOVING ######
 					if read_floor != last_read_floor:
-						move_timeout = time.time() + 4
+						move_timeout = time.time() + 5
 						last_read_floor = read_floor
 					with self.__move_timeout_key:
 						if move_timeout < time.time():
 							self.__move_timeout = True
 						else:
 							self.__move_timeout = False
+
+
+
 			
 				#print " my_id:" + str(MY_ID) + " up:" + str(self.__saved_master_orders_up) + " saved_up:" + str(self.__master_orders_up) + " down:" + str(self.__saved_master_orders_down) + " saved_down" + str(self.__master_orders_down) + " internal" + str(self.__internal_orders) + " saved_internal" + str(self.__saved_internal_orders) + " orders:" + str(self.__elevator_orders) + " n:" + str(next_floor) + " l:" + str(last_floor)
 
@@ -415,7 +447,7 @@ class SlaveDriver:
 							assert self.__master_orders_down == self.__saved_master_orders_down, "unknown error: loading master_file_backup"
 
 
-						###### ADDS SAVED MASTER ORDERS UP/DOWN TO ELEVATOR ORDERS ######
+						###### ADDS SAVED MASTER ORDERS UP/DOWN WITH MY ID TO ELEVATOR ORDERS ######
 						with self.__elevator_orders_key:
 							for floor in range(0,N_FLOORS):
 								###### UP CALLS	######
@@ -434,27 +466,25 @@ class SlaveDriver:
 								#	self.__elevator_orders[floor][BUTTON_DOWN] = 0 # LAR MASTER FJERNE ORDRE
 								###################################################################################################################
 
-
-					############################################# OFFLINE MODE ###################################################
-					###### CLEARS COMPLETE ELEVATOR ORDERS UP/DOWN FROM MASTER ORDERS ######
-					#with self.__elevator_orders_key:
-					#	for floor in range(0,N_FLOORS):
-					#		###### UP CALLS	######
-					#		if (self.__saved_master_orders_up[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_UP] == 0):
-					#			self.__master_orders_up[floor] = 0
-					#		###### DOWN CALLS ######
-					#		if (self.__saved_master_orders_down[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_DOWN] == 0):
-					#			self.__master_orders_down[floor] = 0
-
-
-					###### OFFLINE MODE # ADDS ALL MASTER ORDERS TO ELEVATOR ORDER ######
+					###### OFFLINE MODE ######
 					#with self.__offline_mode_key:
 					#	if self.__offline_mode = True:
+							###### CHANGES ALL SAVED MASTER ORDERS TO MY ID ######
 					#		for floor in range(0,N_FLOORS):
 					#			if self.__saved_master_orders_up[floor] > 0:
-					#				self.__elevator_orders[floor][BUTTON_UP] = 1
+					#				self.__master_orders_up[floor] = MY_ID
 					#			if self.__saved_master_orders_down[floor] > 0:
-					#				self.__elevator_orders[floor][BUTTON_UP] = 1
+					#				self.__master_orders_down[floor] = MY_ID
+
+							###### CLEARS COMPLETE ELEVATOR ORDERS UP/DOWN FROM MASTER ORDERS ######
+							#with self.__elevator_orders_key:
+							#	for floor in range(0,N_FLOORS):
+							#		###### UP CALLS	######
+							#		if (self.__saved_master_orders_up[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_UP] == 0):
+							#			self.__master_orders_up[floor] = 0
+							#		###### DOWN CALLS ######
+							#		if (self.__saved_master_orders_down[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_DOWN] == 0):
+							#			self.__master_orders_down[floor] = 0
 
 		except StandardError as error:
 			print error
@@ -495,16 +525,20 @@ class SlaveDriver:
 																	
 				###### GETS POSITION ######
 				with self.__position_key:
+					read_floor = self.__elevator_interface.get_floor_sensor_signal()
 					(last_floor, next_floor, direction) = self.__position
 				
 				###### SETS OPEN DOOR INDICATOR ######
-				if last_floor == next_floor:
+				if read_floor < 0:
+					self.__panel_interface.set_door_open_lamp(0)
+				elif last_floor == next_floor:
 					self.__panel_interface.set_door_open_lamp(1)
 				else:
 					self.__panel_interface.set_door_open_lamp(0)
 
 				###### SETS FLOOR INDICATOR ######
-				self.__panel_interface.set_floor_indicator(last_floor)
+				if read_floor < 0:
+					self.__panel_interface.set_floor_indicator(last_floor)
 
 		except StandardError as error:
 			print error
