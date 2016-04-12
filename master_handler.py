@@ -141,7 +141,7 @@ class MasterHandler:
 					for elevator in range(0,N_ELEVATORS):
 						if elevator == 0:
 							self.__elevator_orders_up[floor] = elevator + 1
-						elif (elevator_priority_up[elevator] > elevator_priority_up[self.__elevator_orders_up[floor]]) and (self.__slaves_online[elevator] == 1):
+						elif (elevator_priority_up[elevator] > elevator_priority_up[self.__elevator_orders_up[floor]-1]) and (self.__slaves_online[elevator] == 1):
 							self.__elevator_orders_up[floor] = elevator + 1
 					print str(elevator_priority_up) + str(self.__elevator_orders_up[floor])
 					
@@ -173,7 +173,7 @@ class MasterHandler:
 					for elevator in range(0,N_ELEVATORS):
 						if elevator == 0:
 							self.__elevator_orders_down[floor] = elevator + 1
-						elif (elevator_priority_down[elevator] > elevator_priority_down[self.__elevator_orders_down[floor]]) and (self.__slaves_online[elevator] == 1):
+						elif (elevator_priority_down[elevator] > elevator_priority_down[self.__elevator_orders_down[floor]-1]) and (self.__slaves_online[elevator] == 1):
 							self.__elevator_orders_down[floor] = elevator + 1
 					print str(elevator_priority_down) + str(self.__elevator_orders_down[floor])
 
