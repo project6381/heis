@@ -20,7 +20,7 @@ def main():
 	while startup:
 		print "startup"
 		time.sleep(0.1)
-		message_handler.send_to_slave([0 for floor in range(0,N_FLOORS)],[0 for floor in range(0,N_FLOORS)],N_ELEVATORS+1,0)
+		message_handler.send_to_slave([0 for floor in range(0,N_FLOORS)],[0 for floor in range(0,N_FLOORS)],N_ELEVATORS+1)
 		slave_message = message_handler.receive_from_slave()
 		if startup_time < time.time():
 			startup = False
@@ -62,15 +62,15 @@ def main():
 					
 					master_handler.add_new_orders(slave_message['slave_floor_up'],slave_message['slave_floor_down'])
 									
-					master_handler.update_sync_state(slave_message['orders_id'],slave_message['slave_id'])
+					master_handler.update_sync_state(slave_message['slave_id'])
 					
 
-				(orders_up,orders_down,orders_id) = master_handler.get_orders()
+				(orders_up,orders_down) = master_handler.get_orders()
 
 				#if downtime_send < time.time():	
 				#	message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
 				#	downtime_send = time.time() + 0.1
-				message_handler.send_to_slave(orders_up,orders_down,MY_ID,orders_id)
+				message_handler.send_to_slave(orders_up,orders_down,MY_ID)
 				if master_handler.check_master_alive() != MY_ID:
 					active_master = False
 

@@ -27,13 +27,13 @@ class MessageHandler:
 								'slave_id': 0,
 								'last_floor': 0,
 								'next_floor': 0,
-								'direction': 0,
-								'orders_id': 0}
+								'direction': 0}
+								#'orders_id': 0}
 
 		self.__master_message = {'orders_up': [0 for floor in range(0,N_FLOORS)],
 								'orders_down': [0 for floor in range(0,N_FLOORS)],
-								'master_id': 0,
-								'orders_id': 0}
+								'master_id': 0}
+								#'orders_id': 0}
 
 		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages_thread, args = (), name = "__buffering_master_messages_thread")
 		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages_thread, args = (),name = "__buffering_slave_messages_thread")
@@ -55,7 +55,7 @@ class MessageHandler:
 		with self.__is_connected_to_network_key:
 			return self.__is_connected_to_network
 
-	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction,orders_id):
+	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction):
 		floor_up = str()
 		floor_down = str()
 
@@ -66,15 +66,15 @@ class MessageHandler:
 			floor_down += str(floor)	
 
 
-		message = "%s%s%i%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction,orders_id)
+		message = "%s%s%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction)
 		self.__send(message,SLAVE_TO_MASTER_PORT)
 
 
-	def send_to_slave(self,orders_up,orders_down,master_id,orders_id):
+	def send_to_slave(self,orders_up,orders_down,master_id):
 		message = str()
 
 		master_id = str(master_id)
-		orders_id = str(orders_id)
+		#orders_id = str(orders_id)
 		
 		for order in orders_up:
 			message += str(order)
@@ -83,7 +83,7 @@ class MessageHandler:
 			message += str(order)	
 
 		message += master_id
-		message += orders_id
+		#message += orders_id
 		
 		self.__send(message,MASTER_TO_SLAVE_PORT)
 			
@@ -101,7 +101,7 @@ class MessageHandler:
 				self.__master_message['orders_down'][floor] = int(message[4+floor])
 
 			self.__master_message['master_id'] = int(message[8])
-			self.__master_message['orders_id'] = int(message[9:])
+			#self.__master_message['orders_id'] = int(message[9:])
 
 			return self.__master_message
 
@@ -119,7 +119,7 @@ class MessageHandler:
 			self.__slave_message['last_floor'] = int(message[9])
 			self.__slave_message['next_floor'] = int(message[10])
 			self.__slave_message['direction'] = int(message[11])
-			self.__slave_message['orders_id'] = int(message[12:])
+			#self.__slave_message['orders_id'] = int(message[12:])
 
 			return self.__slave_message
 
@@ -222,8 +222,9 @@ class MessageHandler:
 					with self.__receive_buffer_master_key:
 						if message in self.__receive_buffer_master:
 							pass
-						else:	
-							self.__receive_buffer_master.append(message)	
+						else:
+							self.__receive_buffer_master.append(message)
+							print self.__receive_buffer_master
 					#last_message = message
 					#downtime = time.time() + 0.5
 
@@ -284,6 +285,7 @@ class MessageHandler:
 							pass
 						else:	
 							self.__receive_buffer_slave.append(message)
+							print self.__receive_buffer_slave
 							#print self.__receive_buffer_slave	
 					#last_message = message
 					#downtime = time.time() + 0.5

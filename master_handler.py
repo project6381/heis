@@ -18,12 +18,12 @@ class MasterHandler:
 		self.__elevator_orders_down = [0 for floor in range(0,N_FLOORS)]
 		
 		self.__masters_online = [0 for elevator in range(0,N_ELEVATORS)]
-		self.__orders_id = 1
+		#self.__orders_id = 1
 		self.__synced_elevators = [0 for elevator in range(0,N_ELEVATORS)]
 		self.__slaves_online = [0 for elevator in range(0,N_ELEVATORS)]
 		self.__masters_online_key = Lock()
 		self.__slaves_online_key = Lock()
-		self.__order_id_key = Lock()
+		#self.__order_id_key = Lock()
 		self.__alive_thread_started = False
 		self.__timeout_thread_started = False
 		self.__thread_alive = Thread(target = self.__alive_thread, args = (),name = "Buffering master alive thread")
@@ -33,13 +33,13 @@ class MasterHandler:
 		self.__last_orders_up = [0 for floor in range(0,N_FLOORS)]
 		self.__last_orders_down = [0 for floor in range(0,N_FLOORS)]
 
-		self.__downtime_order_id = time.time() + 2
+		#self.__downtime_order_id = time.time() + 2
 		self.__downtime_slaves_online = [time.time() + 2 for elevator in range(0,N_ELEVATORS)]
-		self.__timeout_order_id = 0
+		#self.__timeout_order_id = 0
 
 	def get_orders(self):
-		with self.__order_id_key:
-			return (self.__elevator_orders_up,self.__elevator_orders_down,self.__orders_id)
+
+		return (self.__elevator_orders_up,self.__elevator_orders_down)
 
 	def update_master_alive(self, elevator_id):			
 		###### START THREADS IF NOT ALREADY RUNNING ######
@@ -84,9 +84,9 @@ class MasterHandler:
 			if slave_floor_down[floor] == 1: 
 				self.__orders_down[floor] = 1	
 
-	def update_sync_state(self,orders_id,slave_id):				
-		if self.__orders_id == orders_id:
-			self.__synced_elevators[slave_id-1] = 1
+	def update_sync_state(self,slave_id):				
+		#if self.__orders_id == orders_id:
+		self.__synced_elevators[slave_id-1] = 1
 
 		self.__slaves_online[slave_id-1] = 1
 		#print self.__slaves_online
@@ -94,14 +94,14 @@ class MasterHandler:
 		active_slaves = self.__slaves_online.count(1)
 
 		###### UPDATES ORDERS WHEN ALL ACTIVE SLAVES ARE SYNCED OR TIMED OUT ######
-		if ( (self.__orders_up != self.__last_orders_up) or (self.__orders_down != self.__last_orders_down) ) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_order_id == 1):
-			self.__orders_id += 1
-			if self.__orders_id > 9999: 
-				self.__orders_id = 1
-			self.__last_orders_up = self.__orders_up[:]
-			self.__last_orders_down = self.__orders_down[:]
-			self.__downtime_order_id = time.time() + 2
-			self.__timeout_order_id = 0
+		#if ( (self.__orders_up != self.__last_orders_up) or (self.__orders_down != self.__last_orders_down) ) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_order_id == 1):
+			#self.__orders_id += 1
+			#if self.__orders_id > 9999: 
+			#	self.__orders_id = 1
+		self.__last_orders_up = self.__orders_up[:]
+		self.__last_orders_down = self.__orders_down[:]
+		#self.__downtime_order_id = time.time() + 2
+			#self.__timeout_order_id = 0
 			
 		self.__assign_orders()
 
@@ -143,7 +143,7 @@ class MasterHandler:
 							self.__elevator_orders_up[floor] = elevator + 1
 						elif (elevator_priority_up[elevator] > elevator_priority_up[self.__elevator_orders_up[floor]-1]) and (self.__slaves_online[elevator] == 1):
 							self.__elevator_orders_up[floor] = elevator + 1
-					print str(elevator_priority_up) + str(self.__elevator_orders_up[floor])
+					#print str(elevator_priority_up) + str(self.__elevator_orders_up[floor])
 					
 				###### DOWN ORDERS ######
 				if self.__last_orders_down[floor] == 0:
@@ -175,7 +175,7 @@ class MasterHandler:
 							self.__elevator_orders_down[floor] = elevator + 1
 						elif (elevator_priority_down[elevator] > elevator_priority_down[self.__elevator_orders_down[floor]-1]) and (self.__slaves_online[elevator] == 1):
 							self.__elevator_orders_down[floor] = elevator + 1
-					print str(elevator_priority_down) + str(self.__elevator_orders_down[floor])
+					#print str(elevator_priority_down) + str(self.__elevator_orders_down[floor])
 
 				#print str(self.__elevator_orders_up) + str(self.__elevator_orders_down)
 
@@ -245,9 +245,9 @@ class MasterHandler:
 						if self.__downtime_slaves_online[elevator] < time.time():
 							self.__slaves_online[elevator] = 0
 
-				with self.__order_id_key:
-					if self.__downtime_order_id < time.time():
-						self.__timeout_order_id = 1	
+				#with self.__order_id_key:
+				#	if self.__downtime_order_id < time.time():
+				#		self.__timeout_order_id = 1	
 
 		except StandardError as error:
 			print error

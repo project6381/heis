@@ -14,7 +14,7 @@ def main():
 	#instantiating classes
 	message_handler = MessageHandler()
 	slave_driver = SlaveDriver()
-	orders_id = 0
+	#orders_id = 0
 	#downtime_send = time.time()
 	orders_ok = True
 
@@ -27,17 +27,17 @@ def main():
 
 			if message_handler.no_active_master():
 				slave_driver.set_offline_mode(True)
-				print "offline mode = True"
+				#print "offline mode = True"
 			else:
 				slave_driver.set_offline_mode(False)
-				print "offline mode = False"
+				#print "offline mode = False"
 			
 			
 			if master_message is not None:	
 
 				#slave_driver.clear_floor_panel(master_message['orders_up'][:],master_message['orders_down'][:])
 						
-				orders_id = master_message['orders_id']
+				#orders_id = master_message['orders_id']
 				#print str(orders_ok) + '    '+ str(master_message['master_id'])
 				if slave_driver.changing_master(master_message['master_id'],orders_ok):	
 					
@@ -48,7 +48,7 @@ def main():
 							my_master_orders_up[floor]=1
 						if my_master_orders_down[floor] > 0:
 							my_master_orders_down[floor]=1
-					message_handler.send_to_master(my_master_orders_up,my_master_orders_down,MY_ID,position[0],position[1],position[2],master_message['orders_id'])
+					message_handler.send_to_master(my_master_orders_up,my_master_orders_down,MY_ID,position[0],position[1],position[2])
 					orders_ok = True
 					
 					for floor in range(0,N_FLOORS):
@@ -65,11 +65,11 @@ def main():
 					move_timeout = slave_driver.read_move_timeout()
 			
 					if (move_timeout == False):
-						message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2],orders_id)
+						message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2])
 						#downtime_send = time.time() + 0.1
 
 
-			time.sleep(TICK*N_ELEVATORS)
+			time.sleep(TICK*N_ELEVATORS*2)
 
 		#except KeyboardInterrupt:
 		#	pass
