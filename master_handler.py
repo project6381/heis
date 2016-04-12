@@ -129,7 +129,10 @@ class MasterHandler:
 						elif (floor == 0) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
 							elevator_priority_up[elevator] = 20 + N_FLOORS*20 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
 						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
-							elevator_priority_up[elevator] = 10 + N_FLOORS*10 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
+							if N_FLOORS < 7:
+								elevator_priority_up[elevator] = 10 + N_FLOORS*10 + randint(0,N_FLOORS*10)
+							else:
+								elevator_priority_up[elevator] = 10 + N_FLOORS*10 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
 						else:
 							elevator_priority_up[elevator] = 1 + randint(0,9)
 
@@ -158,7 +161,10 @@ class MasterHandler:
 						elif (floor == N_FLOORS-1) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
 							elevator_priority_down[elevator] = 20 + N_FLOORS*20 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)	
 						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
-							elevator_priority_down[elevator] = 10 + N_FLOORS*10 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
+							if N_FLOORS < 7:
+								elevator_priority_down[elevator] = 10 + N_FLOORS*10 + randint(0,N_FLOORS*10)
+							else:		
+								elevator_priority_down[elevator] = 10 + N_FLOORS*10 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
 						else:
 							elevator_priority_down[elevator] = 1 + randint(0,9)
 
