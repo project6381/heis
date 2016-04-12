@@ -118,7 +118,7 @@ class MasterHandler:
 			with self.__slaves_online_key:
 				if (self.__last_orders_up[floor] == 1) and ((self.__elevator_orders_up[floor] == 0) or (self.__slaves_online[self.__elevator_orders_up[floor]-1] == 0)):
 					###### GIVES ALL ELEVATORS A PRIORITY NUMBER ACCORDING TOO POSITION ######
-					elevator_priority_up = [0]*N_ELEVATORS
+					elevator_priority_up = [0 for elevator in range(0,N_ELEVATORS)]
 					for elevator in range(0,N_ELEVATORS):
 						if self.__slaves_online[elevator] == 0:
 							elevator_priority_up[elevator] = 0
@@ -147,7 +147,7 @@ class MasterHandler:
 
 				if (self.__last_orders_down[floor] == 1) and  ((self.__elevator_orders_down[floor] == 0) or (self.__slaves_online[self.__elevator_orders_down[floor]-1] == 0)):
 					###### GIVES ALL ELEVATORS A PRIORITY NUMBER ACCORDING TOO POSITION ######
-					elevator_priority_down = [0]*N_ELEVATORS
+					elevator_priority_down = [0 for elevator in range(0,N_ELEVATORS)]
 					for elevator in range(0,N_ELEVATORS):
 						if self.__slaves_online[elevator] == 0:
 							elevator_priority_down[elevator] = 0
@@ -169,6 +169,7 @@ class MasterHandler:
 								self.__elevator_orders_down[floor] = elevator + 1
 						elif (elevator_priority_down[elevator] > elevator_priority_down[elevator-1]) and (self.__slaves_online[elevator] == 1):
 							self.__elevator_orders_down[floor] = elevator + 1
+
 
 
 		
