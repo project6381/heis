@@ -268,6 +268,7 @@ class SlaveDriver:
 
 						###### STOPS ELEVATOR WHEN IT REACHES A FLOOR ######
 						while (read_floor < 0):
+							time.sleep(TICK)
 							read_floor = self.__elevator_interface.get_floor_sensor_signal()
 						self.__elevator_interface.set_motor_direction(DIRN_STOP)
 
