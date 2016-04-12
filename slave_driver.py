@@ -33,10 +33,10 @@ class SlaveDriver:
 		self.__last_master_id = 0
 		self.__offline_mode = False
 		self.__position = (0,0,DIRN_STOP)
-		self.__thread_run_elevator = Thread(target = self.__run_elevator_thread, args = (),)
-		self.__thread_read_button = Thread(target = self.__read_button_thread, args = (),)
-		self.__thread_set_indicators = Thread(target = self.__set_indicators_thread, args = (),)
-		self.__thread_save_orders = Thread(target = self.__save_orders_thread, args = (),)
+		self.__thread_run_elevator = Thread(target = self.__run_elevator_thread, args = (), name = "SlaveDriver.__run_elevator_thread")
+		self.__thread_read_button = Thread(target = self.__read_button_thread, args = (), name = "SlaveDriver.__thread_read_button")
+		self.__thread_set_indicators = Thread(target = self.__set_indicators_thread, args = (), name = "SlaveDriver.__thread_set_indicators")
+		self.__thread_save_orders = Thread(target = self.__save_orders_thread, args = (), name = "SlaveDriver.__thread_save_orders")
 		self.__start()
 
 	
