@@ -69,7 +69,7 @@ def main():
 						#downtime_send = time.time() + 0.1
 
 
-			time.sleep(TICK*N_ELEVATORS*2)
+			time.sleep(TICK*N_ELEVATORS)
 
 		#except KeyboardInterrupt:
 		#	pass
