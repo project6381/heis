@@ -1,5 +1,5 @@
 # Constants
-MY_ID = 2
+MY_ID = 1
 
 # System "tick" -- delay for time.sleep()
 TICK = 0.001
