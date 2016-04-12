@@ -1,11 +1,11 @@
 # Constants
-MY_ID = 1
+MY_ID = 2
 
 # System "tick" -- delay for time.sleep()
 TICK = 0.001
 
 # Number of elevators
-N_ELEVATORS = 7
+N_ELEVATORS = 5
 
 #PORTS
 MASTER_TO_SLAVE_PORT = 27852

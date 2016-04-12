@@ -89,6 +89,7 @@ class MasterHandler:
 			self.__synced_elevators[slave_id-1] = 1
 
 		self.__slaves_online[slave_id-1] = 1
+		#print self.__slaves_online
 		self.__downtime_slaves_online[slave_id-1] = time.time() + 1
 		active_slaves = self.__slaves_online.count(1)
 
@@ -123,7 +124,7 @@ class MasterHandler:
 						if self.__slaves_online[elevator] == 0:
 							elevator_priority_up[elevator] = 0
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP)):
-							elevator_priority_up[elevator] = 40 + N_FLOORS*40 + randint(0,9)
+							elevator_priority_up[elevator] = 40 + N_FLOORS*40
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] < floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
 							elevator_priority_up[elevator] = 30 + N_FLOORS*30 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
 						elif (floor == 0) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
@@ -139,10 +140,10 @@ class MasterHandler:
 					###### GIVES THE ORDER TO THE ELEVATOR WITH HIGHEST PRIORITY NUMBER ######
 					for elevator in range(0,N_ELEVATORS):
 						if elevator == 0:
-							if (self.__slaves_online[elevator] == 1):
-								self.__elevator_orders_up[floor] = elevator + 1
-						elif (elevator_priority_up[elevator] > elevator_priority_up[elevator-1]) and (self.__slaves_online[elevator] == 1):
 							self.__elevator_orders_up[floor] = elevator + 1
+						elif (elevator_priority_up[elevator] > elevator_priority_up[self.__elevator_orders_up[floor]]) and (self.__slaves_online[elevator] == 1):
+							self.__elevator_orders_up[floor] = elevator + 1
+					print str(elevator_priority_up) + str(self.__elevator_orders_up[floor])
 					
 				###### DOWN ORDERS ######
 				if self.__last_orders_down[floor] == 0:
@@ -171,10 +172,12 @@ class MasterHandler:
 					###### GIVES THE ORDER TO THE ELEVATOR WITH HIGHEST PRIORITY NUMBER ######
 					for elevator in range(0,N_ELEVATORS):
 						if elevator == 0:
-							if (self.__slaves_online[elevator] == 1):
-								self.__elevator_orders_down[floor] = elevator + 1
-						elif (elevator_priority_down[elevator] > elevator_priority_down[elevator-1]) and (self.__slaves_online[elevator] == 1):
 							self.__elevator_orders_down[floor] = elevator + 1
+						elif (elevator_priority_down[elevator] > elevator_priority_down[self.__elevator_orders_down[floor]]) and (self.__slaves_online[elevator] == 1):
+							self.__elevator_orders_down[floor] = elevator + 1
+					print str(elevator_priority_down) + str(self.__elevator_orders_down[floor])
+
+				#print str(self.__elevator_orders_up) + str(self.__elevator_orders_down)
 
 
 
@@ -227,7 +230,7 @@ class MasterHandler:
 				if master_id is not None:
 					with self.__masters_online_key:
 						self.__masters_online[int(master_id)-1] = 1
-						print self.__masters_online	
+						#print self.__masters_online	
 						downtime_masters_online[int(master_id)-1] = time.time() + 2
 						# In case network is down #
 						master_id = None
