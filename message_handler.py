@@ -39,7 +39,7 @@ class MessageHandler:
 
 	def connected_to_network(self):
 		with self.__is_connected_to_network_key:
-			return self.__slave_thread_started
+			return self.__is_connected_to_network
 
 	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction,orders_id):
 		floor_up = str()
@@ -119,13 +119,13 @@ class MessageHandler:
 			udp.sendto(message, send)
 			udp.close()
 			with self.__is_connected_to_network_key:
-				__is_connected_to_network = True
+				self.__is_connected_to_network = True
 
 		except IOError as error:
 			print error
 			print "MessageHandler.__send: Failed. Network down?"
 			with self.__is_connected_to_network_key:
-				__is_connected_to_network = False
+				self.__is_connected_to_network = False
 
 			#######################################only for testing ####################################
 			print "Sleeping 1 sec.."

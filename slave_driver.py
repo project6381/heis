@@ -467,24 +467,25 @@ class SlaveDriver:
 								###################################################################################################################
 
 					###### OFFLINE MODE ######
-					#with self.__offline_mode_key:
-					#	if self.__offline_mode = True:
+					#print self.__offline_mode
+					with self.__offline_mode_key:
+						if self.__offline_mode == True:
 							###### CHANGES ALL SAVED MASTER ORDERS TO MY ID ######
-					#		for floor in range(0,N_FLOORS):
-					#			if self.__saved_master_orders_up[floor] > 0:
-					#				self.__master_orders_up[floor] = MY_ID
-					#			if self.__saved_master_orders_down[floor] > 0:
-					#				self.__master_orders_down[floor] = MY_ID
+							for floor in range(0,N_FLOORS):
+								if self.__saved_master_orders_up[floor] > 0:
+									self.__master_orders_up[floor] = MY_ID
+								if self.__saved_master_orders_down[floor] > 0:
+									self.__master_orders_down[floor] = MY_ID
 
 							###### CLEARS COMPLETE ELEVATOR ORDERS UP/DOWN FROM MASTER ORDERS ######
-							#with self.__elevator_orders_key:
-							#	for floor in range(0,N_FLOORS):
-							#		###### UP CALLS	######
-							#		if (self.__saved_master_orders_up[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_UP] == 0):
-							#			self.__master_orders_up[floor] = 0
-							#		###### DOWN CALLS ######
-							#		if (self.__saved_master_orders_down[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_DOWN] == 0):
-							#			self.__master_orders_down[floor] = 0
+							with self.__elevator_orders_key:
+								for floor in range(0,N_FLOORS):
+									###### UP CALLS	######
+									if (self.__saved_master_orders_up[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_UP] == 0):
+										self.__master_orders_up[floor] = 0
+									###### DOWN CALLS ######
+									if (self.__saved_master_orders_down[floor] == MY_ID) and (self.__elevator_orders[floor][BUTTON_DOWN] == 0):
+										self.__master_orders_down[floor] = 0
 
 		except StandardError as error:
 			print error
@@ -537,8 +538,7 @@ class SlaveDriver:
 					self.__panel_interface.set_door_open_lamp(0)
 
 				###### SETS FLOOR INDICATOR ######
-				if read_floor < 0:
-					self.__panel_interface.set_floor_indicator(last_floor)
+				self.__panel_interface.set_floor_indicator(last_floor)
 
 		except StandardError as error:
 			print error

@@ -24,6 +24,14 @@ def main():
 
 			position = slave_driver.read_position()
 			master_message = message_handler.receive_from_master()
+
+			if message_handler.connected_to_network():
+				slave_driver.set_offline_mode(False)
+				print "offline mode = False"
+			else:
+				slave_driver.set_offline_mode(True)
+				print "offline mode = True"
+			
 			
 			if master_message is not None:	
 
@@ -48,6 +56,8 @@ def main():
 							orders_ok = False 
 
 				else:
+
+
 					slave_driver.master_order_run_elevator(master_message['orders_up'][:],master_message['orders_down'][:])	
 
 					(floor_up,floor_down) = slave_driver.get_floor_panel()
