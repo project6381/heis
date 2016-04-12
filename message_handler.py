@@ -11,11 +11,15 @@ class MessageHandler:
 	def __init__(self):
 		self.__receive_buffer_slave = [] 
 		self.__receive_buffer_master = [] 	
+		
 		self.__receive_buffer_slave_key = Lock()
 		self.__receive_buffer_master_key = Lock()
+		self.__is_connected_to_network_key = Lock()
+		
 		self.__master_thread_started = False
 		self.__slave_thread_started = False
-		
+		self.__is_connected_to_network = False
+
 		self.__slave_message = {'slave_floor_up': [0 for floor in range(0,N_FLOORS)],
 								'slave_floor_down': [0 for floor in range(0,N_FLOORS)],
 								'slave_id': 0,
@@ -32,6 +36,10 @@ class MessageHandler:
 		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages_thread, args = (), name = "Buffering master thread")
 		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages_thread, args = (),name = "Buffering slave thread")
 	
+
+	def connected_to_network(self):
+		with self.__is_connected_to_network_key:
+			return self.__slave_thread_started
 
 	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction,orders_id):
 		floor_up = str()
@@ -110,10 +118,15 @@ class MessageHandler:
 			message = '<%s;%s>' % (str(len(data)), data)
 			udp.sendto(message, send)
 			udp.close()
+			with self.__is_connected_to_network_key:
+				__is_connected_to_network = True
 
 		except IOError as error:
 			print error
 			print "MessageHandler.__send: Failed. Network down?"
+			with self.__is_connected_to_network_key:
+				__is_connected_to_network = False
+
 			#######################################only for testing ####################################
 			print "Sleeping 1 sec.."
 			time.sleep(1)
