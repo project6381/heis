@@ -123,15 +123,15 @@ class MasterHandler:
 						if self.__slaves_online[elevator] == 0:
 							elevator_priority_up[elevator] = 0
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP)):
-							elevator_priority_up[elevator] = 5 + N_FLOORS*5
+							elevator_priority_up[elevator] = 40 + N_FLOORS*40 + randint(0,9)
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] < floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
-							elevator_priority_up[elevator] = 4 + N_FLOORS*4 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
+							elevator_priority_up[elevator] = 30 + N_FLOORS*30 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
 						elif (floor == 0) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
-							elevator_priority_up[elevator] = 3 + N_FLOORS*3 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
+							elevator_priority_up[elevator] = 20 + N_FLOORS*20 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
 						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
-							elevator_priority_up[elevator] = 2 + N_FLOORS*2 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
+							elevator_priority_up[elevator] = 10 + N_FLOORS*10 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
 						else:
-							elevator_priority_up[elevator] = 1 + randint(0,N_FLOORS)
+							elevator_priority_up[elevator] = 1 + randint(0,9)
 
 					###### GIVES THE ORDER TO THE ELEVATOR WITH HIGHEST PRIORITY NUMBER ######
 					for elevator in range(0,N_ELEVATORS):
@@ -152,15 +152,15 @@ class MasterHandler:
 						if self.__slaves_online[elevator] == 0:
 							elevator_priority_down[elevator] = 0
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and ((self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
-							elevator_priority_down[elevator] = 5 + N_FLOORS*5
+							elevator_priority_down[elevator] = 40 + N_FLOORS*40
 						elif (self.__elevator_positions[elevator][LAST_FLOOR] > floor) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
-							elevator_priority_down[elevator] = 4 + N_FLOORS*4 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))
+							elevator_priority_down[elevator] = 30 + N_FLOORS*30 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
 						elif (floor == N_FLOORS-1) and (self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
-							elevator_priority_down[elevator] = 3 + N_FLOORS*3 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))	
+							elevator_priority_down[elevator] = 20 + N_FLOORS*20 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)	
 						elif (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP):
-							elevator_priority_down[elevator] = 2 + N_FLOORS*2 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))	
+							elevator_priority_down[elevator] = 10 + N_FLOORS*10 + (N_FLOORS - abs(self.__elevator_positions[elevator][LAST_FLOOR] - floor))*10 + randint(0,9)
 						else:
-							elevator_priority_down[elevator] = 1 + randint(0,N_FLOORS)
+							elevator_priority_down[elevator] = 1 + randint(0,9)
 
 					###### GIVES THE ORDER TO THE ELEVATOR WITH HIGHEST PRIORITY NUMBER ######
 					for elevator in range(0,N_ELEVATORS):
