@@ -25,12 +25,12 @@ def main():
 			position = slave_driver.read_position()
 			master_message = message_handler.receive_from_master()
 
-			if message_handler.connected_to_network():
-				slave_driver.set_offline_mode(False)
-				print "offline mode = False"
-			else:
+			if message_handler.no_active_master():
 				slave_driver.set_offline_mode(True)
 				print "offline mode = True"
+			else:
+				slave_driver.set_offline_mode(False)
+				print "offline mode = False"
 			
 			
 			if master_message is not None:	

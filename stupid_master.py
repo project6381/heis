@@ -24,9 +24,13 @@ def main():
 		slave_message = message_handler.receive_from_slave()
 		if startup_time < time.time():
 			startup = False
-
+		if not message_handler.connected_to_network():
+			raise KeyboardInterrupt
+	
 	while True:
 		#try:
+			if not message_handler.connected_to_network():
+				raise KeyboardInterrupt
 			master_handler.update_master_alive(MY_ID)
 
 			if master_handler.check_master_alive() == MY_ID:
@@ -43,7 +47,8 @@ def main():
 
 
 			while active_master:
-				
+				if not message_handler.connected_to_network():
+					raise KeyboardInterrupt
 				master_handler.update_master_alive(MY_ID)
 
 				slave_message = message_handler.receive_from_slave()

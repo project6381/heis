@@ -15,9 +15,11 @@ class MessageHandler:
 		self.__receive_buffer_slave_key = Lock()
 		self.__receive_buffer_master_key = Lock()
 		self.__is_connected_to_network_key = Lock()
-		
+		self.__no_active_master_key = Lock()
+		self.__no_active_master = False
 		self.__master_thread_started = False
 		self.__slave_thread_started = False
+		self.__master_alive_thread_started = False
 		self.__is_connected_to_network = False
 
 		self.__slave_message = {'slave_floor_up': [0 for floor in range(0,N_FLOORS)],
@@ -33,9 +35,21 @@ class MessageHandler:
 								'master_id': 0,
 								'orders_id': 0}
 
-		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages_thread, args = (), name = "Buffering master thread")
-		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages_thread, args = (),name = "Buffering slave thread")
-	
+		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages_thread, args = (), name = "__buffering_master_messages_thread")
+		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages_thread, args = (),name = "__buffering_slave_messages_thread")
+		self.__thread_master_alive = Thread(target = self.__master_alive_thread, args = (),name = "__master_alive_thread")
+
+		self.__downtime_no_active_master = time.time() + 2
+
+	def no_active_master(self):
+		
+
+		if self.__master_alive_thread_started is not True:
+			self.__start(self.__thread_master_alive)
+
+		with self.__no_active_master_key: 
+			return self.__no_active_master
+
 
 	def connected_to_network(self):
 		with self.__is_connected_to_network_key:
@@ -242,7 +256,7 @@ class MessageHandler:
 				interrupt_main()
 			
 			#downtime = time.time() + 0.5
-
+			downtime_no_active_master = time.time() + 2
 			while True:
 				# RECIEVE AND CHECK #
 				try:
@@ -261,6 +275,10 @@ class MessageHandler:
 				#print message
 				###### APPENDING NEW MESSAGES IN BUFFER ######
 				if (message is not None):
+					self.__downtime_no_active_master = time.time() + 2
+					with self.__no_active_master_key:
+						self.__no_active_master = False
+
 					with self.__receive_buffer_slave_key:
 						if message in self.__receive_buffer_slave:
 							pass
@@ -270,9 +288,31 @@ class MessageHandler:
 					#last_message = message
 					#downtime = time.time() + 0.5
 
+				
+
 		except StandardError as error:
 			print error
 			print "MessageHandler.__buffering_slave_messages"
+			interrupt_main()
+
+	def __master_alive_thread(self):
+		try:
+			__master_alive_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MessageHandler.__master_alive_thread")
+			__master_alive_thread_watchdog.StartWatchdog()
+
+			self.__master_alive_thread_started = True
+
+			while True:				
+				time.sleep(TICK*100)
+				__master_alive_thread_watchdog.PetWatchdog()
+
+				if self.__downtime_no_active_master < time.time():
+					with self.__no_active_master_key:
+						self.__no_active_master = True
+
+		except StandardError as error:
+			print error
+			print "MessageHandler.__master_alive"
 			interrupt_main()
 
 	def __errorcheck(self,data):
