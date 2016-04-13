@@ -8,8 +8,7 @@ def main():
 	try:
 		message_handler = MessageHandler()
 		master_handler = MasterHandler()
-		
-		active_master = False
+
 		startup = True
 		startup_time = time.time() + 1
 		
@@ -40,27 +39,17 @@ def main():
 
 			master_handler.i_am_alive()
 
-			if master_handler.active_master() == MY_ID:
-				active_master = True
-			else:
-				active_master = False
-
 			slave_message = message_handler.receive_from_slave()
 
 			if slave_message is not None:
-				master_handler.update_slave_online(slave_message['slave_id'])			
+				master_handler.process_slave_event(slave_message)		
 
-			if active_master:
+			if master_handler.active_master() == MY_ID:
 
-				if slave_message is not None:
-								
-					master_handler.process_slave_event(slave_message)
-				
 				(orders_up,orders_down) = master_handler.current_orders()
 
 				message_handler.send_to_slave(orders_up,orders_down,MY_ID)
-				
-					
+								
 		
 	except KeyboardInterrupt:
 		pass
