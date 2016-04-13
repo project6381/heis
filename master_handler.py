@@ -19,8 +19,10 @@ class MasterHandler:
 		
 		self.__masters_online = [0 for elevator in range(0,N_ELEVATORS)]
 		self.__slaves_online = [0 for elevator in range(0,N_ELEVATORS)]
+
 		self.__masters_online_key = Lock()
 		self.__slaves_online_key = Lock()
+
 		self.__alive_thread_started = False
 		self.__timeout_thread_started = False
 		self.__thread_alive = Thread(target = self.__alive_thread, args = (),name = "Buffering master alive thread")
@@ -33,6 +35,20 @@ class MasterHandler:
 
 		self.__downtime_slaves_online = [time.time() + 2 for elevator in range(0,N_ELEVATORS)]
 		
+	def current_orders(self):
+		return (self.__elevator_orders_up,self.__elevator_orders_down)
+
+
+	def process_slave_event(self, slave_message):
+		self.__clear_completed_orders(slave_message['direction'],slave_message['last_floor'],slave_message['next_floor'])
+
+		self.__update_elevator_position(slave_message['slave_id'],slave_message['last_floor'],slave_message['next_floor'],slave_message['direction'])
+					
+		self.__add_new_orders(slave_message['slave_floor_up'],slave_message['slave_floor_down'])
+
+		self.__assign_orders()
+				
+
 	def i_am_alive(self):			
 		###### START THREADS IF NOT ALREADY RUNNING ######
 		if self.__alive_thread_started is not True:
@@ -40,7 +56,7 @@ class MasterHandler:
 
 		self.__send(str(MY_ID),MASTER_TO_MASTER_PORT)
 
-	def update_elevator_position(self,slave_id,last_floor,next_floor,direction):
+	def __update_elevator_position(self,slave_id,last_floor,next_floor,direction):
 		self.__elevator_positions[slave_id-1] = [last_floor,next_floor,direction] 
 				
 	def update_slave_online(self,slave_id):
@@ -56,7 +72,7 @@ class MasterHandler:
 					return elevator+1
 		return -1
 
-	def clear_completed_orders(self,direction,last_floor,next_floor):
+	def __clear_completed_orders(self,direction,last_floor,next_floor):
 		if last_floor == next_floor:
 			arrived = last_floor
 			if (direction == DIRN_UP) or (direction == DIRN_STOP):
@@ -65,7 +81,7 @@ class MasterHandler:
 				self.__orders_down[arrived] = 0
 
 
-	def add_new_orders(self,slave_floor_up,slave_floor_down):
+	def __add_new_orders(self,slave_floor_up,slave_floor_down):
 		for floor in range(0,N_FLOORS):
 			if slave_floor_up[floor] == 1: 
 				self.__orders_up[floor] = 1
@@ -74,7 +90,7 @@ class MasterHandler:
 			if slave_floor_down[floor] == 1: 
 				self.__orders_down[floor] = 1	
 
-	def assign_orders(self):				
+	def __assign_orders(self):				
 		###### ASSIGNS ORDERS TO ELEVATORS ######
 		for floor in range(0,N_FLOORS):
 			with self.__slaves_online_key:
@@ -137,8 +153,6 @@ class MasterHandler:
 					#print str(elevator_priority_down) + str(self.__elevator_orders_down[floor])
 
 				#print str(self.__elevator_orders_up) + str(self.__elevator_orders_down)
-
-		return (self.__elevator_orders_up,self.__elevator_orders_down)
 
 
 

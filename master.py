@@ -41,41 +41,26 @@ def main():
 			master_handler.i_am_alive()
 
 			if master_handler.active_master() == MY_ID:
-				active_master = True				
+				active_master = True
 			else:
-				slave_message = message_handler.receive_from_slave()
+				active_master = False
 
-				if slave_message is not None:
-					master_handler.update_slave_online(slave_message['slave_id'])			
+			slave_message = message_handler.receive_from_slave()
 
-			while active_master:
-				time.sleep(TICK)
+			if slave_message is not None:
+				master_handler.update_slave_online(slave_message['slave_id'])			
 
-				if not message_handler.connected_to_network():
-					raise KeyboardInterrupt
-				
-				master_handler.i_am_alive()
-
-				slave_message = message_handler.receive_from_slave()
+			if active_master:
 
 				if slave_message is not None:
 								
-					master_handler.clear_completed_orders(	slave_message['direction'],
-															slave_message['last_floor'],
-															slave_message['next_floor'])
-
-					master_handler.update_elevator_position(slave_message['slave_id'],slave_message['last_floor'],slave_message['next_floor'],slave_message['direction'])
-					
-					master_handler.add_new_orders(slave_message['slave_floor_up'],slave_message['slave_floor_down'])
-									
-					master_handler.update_slave_online(slave_message['slave_id'])
+					master_handler.process_slave_event(slave_message)
 				
-				(orders_up,orders_down) = master_handler.assign_orders()
+				(orders_up,orders_down) = master_handler.current_orders()
 
 				message_handler.send_to_slave(orders_up,orders_down,MY_ID)
 				
-				if master_handler.active_master() != MY_ID:
-					active_master = False
+					
 		
 	except KeyboardInterrupt:
 		pass
