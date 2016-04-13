@@ -215,7 +215,7 @@ class MessageHandler:
 							pass
 						else:
 							self.__receive_buffer_master.append(message)
-							print self.__receive_buffer_master
+							#print self.__receive_buffer_master
 					#last_message = message
 					#downtime = time.time() + 0.5
 
@@ -275,7 +275,7 @@ class MessageHandler:
 							pass
 						else:	
 							self.__receive_buffer_slave.append(message)
-							print self.__receive_buffer_slave
+							#print self.__receive_buffer_slave
 							#print self.__receive_buffer_slave	
 					#last_message = message
 					#downtime = time.time() + 0.5

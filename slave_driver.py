@@ -32,6 +32,7 @@ class SlaveDriver:
 		self.__external_buttons_down = [0 for floor in range(0,N_FLOORS)]
 		self.__last_master_id = 0
 		self.__offline_mode = False
+		self.__changing_master = False
 		self.__position = (0,0,DIRN_STOP)
 		self.__thread_run_elevator = Thread(target = self.__run_elevator_thread, args = (), name = "SlaveDriver.__run_elevator_thread")
 		self.__thread_read_button = Thread(target = self.__read_button_thread, args = (), name = "SlaveDriver.__thread_read_button")
@@ -43,14 +44,18 @@ class SlaveDriver:
 	def changing_master(self,master_message):
 		if self.__last_master_id !=  master_message['master_id']:
 			self.__last_master_id = master_message['master_id']
+			self.__changing_master = True
 			return True
-		
-		###### 'CHANGING MASTER' UNTIL 'MASTER ORDERS' CONTAINS ALL 'UNFINISHED ORDERS' ######
-		(unfinished_orders_up,unfinished_orders_down) = self.unfinished_orders()
-		for floor in range(0,N_FLOORS):
-			if ((unfinished_orders_up[floor] > 0) and (master_message['orders_up'][floor] == 0)) or ((unfinished_orders_down[floor] > 0) and (master_message['orders_down'][floor] == 0)):
-				return True
 
+		if self.__changing_master:
+			###### 'CHANGING MASTER' UNTIL 'MASTER ORDERS' CONTAINS ALL 'UNFINISHED ORDERS' ######
+			(unfinished_orders_up,unfinished_orders_down) = self.unfinished_orders()
+			for floor in range(0,N_FLOORS):
+				if ((unfinished_orders_up[floor] > 0) and (master_message['orders_up'][floor] == 0)) or ((unfinished_orders_down[floor] > 0) and (master_message['orders_down'][floor] == 0)):
+					self.__changing_master = True
+					return True
+
+		self.__changing_master = False
 		return False
 
 	def update_master_orders(self,master_order_up,master_order_down):
@@ -60,13 +65,19 @@ class SlaveDriver:
 
 	def unfinished_orders(self):
 		with self.__master_orders_key:
-			for floor in range(0,N_FLOORS):
-						if self.__saved_master_orders_up[floor] > 0:
-							unfinished_orders_up[floor]=1
-						if self.__saved_master_orders_down[floor] > 0:
-							unfinished_orders_down[floor]=1
-			return (unfinished_orders_up[:],unfinished_orders_down[:])
-	
+			unfinished_orders_up = self.__saved_master_orders_up[:]
+			unfinished_orders_down = self.__saved_master_orders_down[:]
+		
+		###### REMOVE ASSIGNMENT FROM ORDERS ######
+		for floor in range(0,N_FLOORS):
+			if unfinished_orders_up[floor] > 0:
+				unfinished_orders_up[floor] = 1
+
+			if unfinished_orders_down[floor] > 0:
+				unfinished_orders_down[floor] = 1
+
+		return (unfinished_orders_up[:],unfinished_orders_down[:])
+
 	def external_buttons_pressed(self):
 		with self.__external_buttons_key:
 			return (self.__external_buttons_up[:],self.__external_buttons_down[:])		
