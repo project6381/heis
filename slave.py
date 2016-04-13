@@ -9,8 +9,6 @@ def main():
 		message_handler = MessageHandler()
 		slave_driver = SlaveDriver()
 
-		orders_ok = True
-
 		while True:
 			time.sleep(TICK*N_ELEVATORS)
 
@@ -23,26 +21,18 @@ def main():
 				slave_driver.set_offline_mode(False)	
 			
 			if master_message is not None:	
-				if slave_driver.changing_master(master_message['master_id'],orders_ok):	
-					print "CHANGING MASTER"
+				if slave_driver.changing_master(master_message):	
 					(unfinished_orders_up,unfinished_orders_down) = slave_driver.unfinished_orders()
 					
-					message_handler.send_to_master(unfinished_orders_up,unfinished_orders_down,MY_ID,position[0],position[1],position[2])
-					orders_ok = True
-					
-					for floor in range(0,N_FLOORS):
-						if ( (unfinished_orders_up[floor] > 0) and (master_message['orders_up'][floor] == 0) ) or ( (unfinished_orders_down[floor] > 0) and (master_message['orders_down'][floor] == 0) ):
-							orders_ok = False 
+					message_handler.send_to_master(unfinished_orders_up,unfinished_orders_down,MY_ID,position[0],position[1],position[2])			 
 
 				else:
-					slave_driver.master_order_run_elevator(master_message['orders_up'][:],master_message['orders_down'][:])	
+					slave_driver.update_master_orders(master_message['orders_up'][:],master_message['orders_down'][:])	
 
-					(floor_up,floor_down) = slave_driver.get_floor_panel()
-
-					move_timeout = slave_driver.read_move_timeout()
+					(buttons_up,buttons_down) = slave_driver.external_buttons_pressed()
 			
-					if (move_timeout == False):
-						message_handler.send_to_master(floor_up,floor_down,MY_ID,position[0],position[1],position[2])
+					if slave_driver.move_timeout():
+						message_handler.send_to_master(buttons_up,buttons_down,MY_ID,position[0],position[1],position[2])
 		
 	###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######
 	except KeyboardInterrupt:

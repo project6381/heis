@@ -1,4 +1,4 @@
-from socket import *
+from socket import socket, AF_INET, SOCK_DGRAM, SOL_SOCKET, SO_BROADCAST
 from threading import Thread, Lock
 import time
 from ported_driver.constants import N_FLOORS
@@ -23,18 +23,16 @@ class MessageHandler:
 		self.__master_alive_thread_started = False
 		self.__is_connected_to_network = False
 
-		self.__slave_message = {'slave_floor_up': [0 for floor in range(0,N_FLOORS)],
-								'slave_floor_down': [0 for floor in range(0,N_FLOORS)],
+		self.__slave_message = {'buttons_up': [0 for floor in range(0,N_FLOORS)],
+								'buttons_down': [0 for floor in range(0,N_FLOORS)],
 								'slave_id': 0,
 								'last_floor': 0,
 								'next_floor': 0,
 								'direction': 0}
-								#'orders_id': 0}
 
 		self.__master_message = {'orders_up': [0 for floor in range(0,N_FLOORS)],
 								'orders_down': [0 for floor in range(0,N_FLOORS)],
 								'master_id': 0}
-								#'orders_id': 0}
 
 		self.__thread_buffering_master = Thread(target = self.__buffering_master_messages_thread, args = (), name = "__buffering_master_messages_thread")
 		self.__thread_buffering_slave = Thread(target = self.__buffering_slave_messages_thread, args = (),name = "__buffering_slave_messages_thread")
@@ -54,14 +52,14 @@ class MessageHandler:
 		with self.__is_connected_to_network_key:
 			return self.__is_connected_to_network
 
-	def send_to_master(self,slave_floor_up,slave_floor_down,slave_id,last_floor,next_floor,direction):
+	def send_to_master(self,buttons_up,buttons_down,slave_id,last_floor,next_floor,direction):
 		floor_up = str()
 		floor_down = str()
 
-		for floor in slave_floor_up:
+		for floor in buttons_up:
 			floor_up += str(floor)	
 
-		for floor in slave_floor_down:
+		for floor in buttons_down:
 			floor_down += str(floor)	
 
 		message = "%s%s%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction)
@@ -107,8 +105,8 @@ class MessageHandler:
 		if message is not None:
 
 			for floor in range (0,N_FLOORS):
-					self.__slave_message['slave_floor_up'][floor] = int(message[floor])
-					self.__slave_message['slave_floor_down'][floor] = int(message[4+floor]) 	
+					self.__slave_message['buttons_up'][floor] = int(message[floor])
+					self.__slave_message['buttons_down'][floor] = int(message[4+floor]) 	
 
 			self.__slave_message['slave_id'] = int(message[8])
 			self.__slave_message['last_floor'] = int(message[9])

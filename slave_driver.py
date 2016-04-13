@@ -16,7 +16,7 @@ class SlaveDriver:
 		self.__elevator_orders_key = Lock()
 		self.__master_orders_key = Lock()
 		self.__internal_orders_key = Lock()
-		self.__floor_panel_key = Lock()
+		self.__external_buttons_key = Lock()
 		self.__position_key = Lock()
 		self.__offline_mode_key = Lock()
 		self.__move_timeout_key = Lock()
@@ -28,8 +28,8 @@ class SlaveDriver:
 		self.__saved_master_orders_down = [0 for floor in range(0,N_FLOORS)]
 		self.__internal_orders = [0 for floor in range(0,N_FLOORS)]
 		self.__saved_internal_orders = [0 for floor in range(0,N_FLOORS)]
-		self.__floor_panel_up = [0 for floor in range(0,N_FLOORS)]
-		self.__floor_panel_down = [0 for floor in range(0,N_FLOORS)]
+		self.__external_buttons_up = [0 for floor in range(0,N_FLOORS)]
+		self.__external_buttons_down = [0 for floor in range(0,N_FLOORS)]
 		self.__last_master_id = 0
 		self.__offline_mode = False
 		self.__position = (0,0,DIRN_STOP)
@@ -40,16 +40,20 @@ class SlaveDriver:
 		self.__start()
 
 	
-	def changing_master(self,master_id,orders_ok):
-		if self.__last_master_id !=  master_id:
-			self.__last_master_id = master_id
+	def changing_master(self,master_message):
+		if self.__last_master_id !=  master_message['master_id']:
+			self.__last_master_id = master_message['master_id']
 			return True
-		elif orders_ok == False: 
-			return True
-		else:
-			return False
+		
+		###### 'CHANGING MASTER' UNTIL 'MASTER ORDERS' CONTAINS ALL 'UNFINISHED ORDERS' ######
+		(unfinished_orders_up,unfinished_orders_down) = self.unfinished_orders()
+		for floor in range(0,N_FLOORS):
+			if ((unfinished_orders_up[floor] > 0) and (master_message['orders_up'][floor] == 0)) or ((unfinished_orders_down[floor] > 0) and (master_message['orders_down'][floor] == 0)):
+				return True
 
-	def master_order_run_elevator(self,master_order_up,master_order_down):
+		return False
+
+	def update_master_orders(self,master_order_up,master_order_down):
 		with self.__master_orders_key:
 			self.__master_orders_up = master_order_up
 			self.__master_orders_down = master_order_down
@@ -63,18 +67,18 @@ class SlaveDriver:
 							unfinished_orders_down[floor]=1
 			return (unfinished_orders_up[:],unfinished_orders_down[:])
 	
-	def get_floor_panel(self):
-		with self.__floor_panel_key:
-			return (self.__floor_panel_up[:],self.__floor_panel_down[:])		
+	def external_buttons_pressed(self):
+		with self.__external_buttons_key:
+			return (self.__external_buttons_up[:],self.__external_buttons_down[:])		
 	
 	'''
 	def clear_floor_panel(self,orders_up,orders_down):
-		with self.__floor_panel_key:
+		with self.__external_buttons_key:
 			for floor in range (0,N_FLOORS):			
 				if (orders_up[floor] != 0):
-					self.__floor_panel_up[floor] = 0
+					self.__external_buttons_up[floor] = 0
 				if (orders_down[floor] != 0):
-					self.__floor_panel_down[floor] = 0
+					self.__external_buttons_down[floor] = 0
 	'''
 
 	def read_position(self):
@@ -85,10 +89,12 @@ class SlaveDriver:
 		with self.__offline_mode_key:
 			self.__offline_mode = offline_mode
 
-	def read_move_timeout(self):
+	def move_timeout(self):
 		with self.__move_timeout_key:
-			return self.__move_timeout
-
+			if self.__move_timeout:
+				return True
+			else:
+				return False
 
 	def __start(self):
 		###### STARTS THE INITIAL-FUNCTIONS AND THREADS ######
@@ -369,19 +375,19 @@ class SlaveDriver:
 									self.__internal_orders[floor] = 1
 							###### ADDS UP/DOWN BUTTON TO FLOOR PANEL LIST ###### 
 							elif button == BUTTON_UP:
-								with self.__floor_panel_key:
-									self.__floor_panel_up[floor] = 1
+								with self.__external_buttons_key:
+									self.__external_buttons_up[floor] = 1
 							elif button == BUTTON_DOWN:
-								with self.__floor_panel_key:
-									self.__floor_panel_down[floor] = 1
+								with self.__external_buttons_key:
+									self.__external_buttons_down[floor] = 1
 						else:
 							###### CLEARS UP/DOWN BUTTON FROM FLOOR PANEL LIST ###### 
 							if button == BUTTON_UP:
-								with self.__floor_panel_key:
-									self.__floor_panel_up[floor] = 0
+								with self.__external_buttons_key:
+									self.__external_buttons_up[floor] = 0
 							elif button == BUTTON_DOWN:
-								with self.__floor_panel_key:
-									self.__floor_panel_down[floor] = 0
+								with self.__external_buttons_key:
+									self.__external_buttons_down[floor] = 0
 
 
 		except StandardError as error:

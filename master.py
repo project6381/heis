@@ -46,9 +46,9 @@ def main():
 
 			if master_handler.active_master() == MY_ID:
 
-				(orders_up,orders_down) = master_handler.current_orders()
+				(assigned_orders_up,assigned_orders_down) = master_handler.current_assigned_orders()
 
-				message_handler.send_to_slave(orders_up,orders_down,MY_ID)
+				message_handler.send_to_slave(assigned_orders_up,assigned_orders_down,MY_ID)
 
 	###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######							
 	except KeyboardInterrupt:
