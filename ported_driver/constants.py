@@ -1,3 +1,5 @@
+# coding=utf-8
+
 # elev_motor_direction
 DIRN_DOWN = 0
 DIRN_STOP = 1
