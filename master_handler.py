@@ -1,5 +1,5 @@
 from ported_driver.constants import N_FLOORS, LAST_FLOOR, NEXT_FLOOR, DIRECTION, DIRN_STOP, DIRN_DOWN, DIRN_UP
-from config_parameters import MASTER_TO_MASTER_PORT, MASTER_BUTTON_ORDERS_PORT, N_ELEVATORS
+from config_parameters import MASTER_TO_MASTER_PORT, MASTER_BUTTON_ORDERS_PORT, N_ELEVATORS, MY_ID
 from socket import *
 from random import randint
 from threading import Thread, Lock
@@ -18,37 +18,27 @@ class MasterHandler:
 		self.__elevator_orders_down = [0 for floor in range(0,N_FLOORS)]
 		
 		self.__masters_online = [0 for elevator in range(0,N_ELEVATORS)]
-		#self.__orders_id = 1
-		self.__synced_elevators = [0 for elevator in range(0,N_ELEVATORS)]
 		self.__slaves_online = [0 for elevator in range(0,N_ELEVATORS)]
 		self.__masters_online_key = Lock()
 		self.__slaves_online_key = Lock()
-		#self.__order_id_key = Lock()
 		self.__alive_thread_started = False
 		self.__timeout_thread_started = False
 		self.__thread_alive = Thread(target = self.__alive_thread, args = (),name = "Buffering master alive thread")
 	
 		self.__orders_up = [0 for floor in range(0,N_FLOORS)]
 		self.__orders_down = [0 for floor in range(0,N_FLOORS)]
-		self.__last_orders_up = [0 for floor in range(0,N_FLOORS)]
-		self.__last_orders_down = [0 for floor in range(0,N_FLOORS)]
+		self.__orders_up = [0 for floor in range(0,N_FLOORS)]
+		self.__orders_down = [0 for floor in range(0,N_FLOORS)]
 
-		#self.__downtime_order_id = time.time() + 2
+
 		self.__downtime_slaves_online = [time.time() + 2 for elevator in range(0,N_ELEVATORS)]
-		#self.__timeout_order_id = 0
-
-	def get_orders(self):
-
-		return (self.__elevator_orders_up,self.__elevator_orders_down)
-
-	def update_master_alive(self, elevator_id):			
+		
+	def i_am_alive(self):			
 		###### START THREADS IF NOT ALREADY RUNNING ######
 		if self.__alive_thread_started is not True:
 			self.__start(self.__thread_alive)
 
-		self.__send(str(elevator_id),MASTER_TO_MASTER_PORT)
-
-
+		self.__send(str(MY_ID),MASTER_TO_MASTER_PORT)
 
 	def update_elevator_position(self,slave_id,last_floor,next_floor,direction):
 		self.__elevator_positions[slave_id-1] = [last_floor,next_floor,direction] 
@@ -84,41 +74,15 @@ class MasterHandler:
 			if slave_floor_down[floor] == 1: 
 				self.__orders_down[floor] = 1	
 
-	def update_sync_state(self,slave_id):				
-		#if self.__orders_id == orders_id:
-		self.__synced_elevators[slave_id-1] = 1
-
-		self.__slaves_online[slave_id-1] = 1
-		#print self.__slaves_online
-		self.__downtime_slaves_online[slave_id-1] = time.time() + 1
-		active_slaves = self.__slaves_online.count(1)
-
-		###### UPDATES ORDERS WHEN ALL ACTIVE SLAVES ARE SYNCED OR TIMED OUT ######
-		#if ( (self.__orders_up != self.__last_orders_up) or (self.__orders_down != self.__last_orders_down) ) and (active_slaves == self.__synced_elevators.count(1) or self.__timeout_order_id == 1):
-			#self.__orders_id += 1
-			#if self.__orders_id > 9999: 
-			#	self.__orders_id = 1
-		self.__last_orders_up = self.__orders_up[:]
-		self.__last_orders_down = self.__orders_down[:]
-		#self.__downtime_order_id = time.time() + 2
-			#self.__timeout_order_id = 0
-			
-		self.__assign_orders()
-
-
-	def __assign_orders(self):
-
-		#self.__elevator_positions = elevator_positions
-		#self.__slaves_online = elevator_online
-					
+	def assign_orders(self):				
 		###### ASSIGNS ORDERS TO ELEVATORS ######
 		for floor in range(0,N_FLOORS):
 			with self.__slaves_online_key:
 				###### UP ORDERS #######
-				if self.__last_orders_up[floor] == 0:
+				if self.__orders_up[floor] == 0:
 					self.__elevator_orders_up[floor] = 0
 
-				if (self.__last_orders_up[floor] == 1) and ((self.__elevator_orders_up[floor] == 0) or (self.__slaves_online[self.__elevator_orders_up[floor]-1] == 0)):
+				if (self.__orders_up[floor] == 1) and ((self.__elevator_orders_up[floor] == 0) or (self.__slaves_online[self.__elevator_orders_up[floor]-1] == 0)):
 					###### GIVES ALL ELEVATORS A PRIORITY NUMBER ACCORDING TO POSITION ######
 					elevator_priority_up = [0 for elevator in range(0,N_ELEVATORS)]
 					for elevator in range(0,N_ELEVATORS):
@@ -144,10 +108,10 @@ class MasterHandler:
 					#print str(elevator_priority_up) + str(self.__elevator_orders_up[floor])
 					
 				###### DOWN ORDERS ######
-				if self.__last_orders_down[floor] == 0:
+				if self.__orders_down[floor] == 0:
 					self.__elevator_orders_down[floor] = 0
 
-				if (self.__last_orders_down[floor] == 1) and  ((self.__elevator_orders_down[floor] == 0) or (self.__slaves_online[self.__elevator_orders_down[floor]-1] == 0)):
+				if (self.__orders_down[floor] == 1) and  ((self.__elevator_orders_down[floor] == 0) or (self.__slaves_online[self.__elevator_orders_down[floor]-1] == 0)):
 					###### GIVES ALL ELEVATORS A PRIORITY NUMBER ACCORDING TO POSITION ######
 					elevator_priority_down = [0 for elevator in range(0,N_ELEVATORS)]
 					for elevator in range(0,N_ELEVATORS):
@@ -173,6 +137,8 @@ class MasterHandler:
 					#print str(elevator_priority_down) + str(self.__elevator_orders_down[floor])
 
 				#print str(self.__elevator_orders_up) + str(self.__elevator_orders_down)
+
+		return (self.__elevator_orders_up,self.__elevator_orders_down)
 
 
 
