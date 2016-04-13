@@ -1,6 +1,6 @@
 #!/bin/sh
 
-COMMAND="python stupid_master.py"
+COMMAND="python master.py"
 LOGFILE=master_log.txt
 
 writelog() {

@@ -53,12 +53,12 @@ class MasterHandler:
 	def update_elevator_position(self,slave_id,last_floor,next_floor,direction):
 		self.__elevator_positions[slave_id-1] = [last_floor,next_floor,direction] 
 				
-	def update_elevator_online(self,slave_id):
+	def update_slave_online(self,slave_id):
 		with self.__slaves_online_key:
 			self.__slaves_online[slave_id-1] = 1
 			self.__downtime_slaves_online[slave_id-1] = time.time() + 1
 	
-	def check_master_alive(self):	
+	def active_master(self):	
 		###### RETURN THE LOWEST ELEVATOR ID ######
 		with self.__masters_online_key:
 			for elevator in range(0,N_ELEVATORS):

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-COMMAND="python stupid_slave.py"
+COMMAND="python slave.py"
 LOGFILE=slave_log.txt
 
 writelog() {
