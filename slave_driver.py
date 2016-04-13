@@ -54,9 +54,14 @@ class SlaveDriver:
 			self.__master_orders_up = master_order_up
 			self.__master_orders_down = master_order_down
 
-	def read_saved_master_queue(self):
+	def unfinished_orders(self):
 		with self.__master_orders_key:
-			return (self.__saved_master_orders_up[:],self.__saved_master_orders_down[:])
+			for floor in range(0,N_FLOORS):
+						if self.__saved_master_orders_up[floor] > 0:
+							unfinished_orders_up[floor]=1
+						if self.__saved_master_orders_down[floor] > 0:
+							unfinished_orders_down[floor]=1
+			return (unfinished_orders_up[:],unfinished_orders_down[:])
 	
 	def get_floor_panel(self):
 		with self.__floor_panel_key:

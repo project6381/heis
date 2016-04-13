@@ -16,6 +16,7 @@ class MessageHandler:
 		self.__receive_buffer_master_key = Lock()
 		self.__is_connected_to_network_key = Lock()
 		self.__no_active_master_key = Lock()
+
 		self.__no_active_master = False
 		self.__master_thread_started = False
 		self.__slave_thread_started = False
@@ -42,8 +43,6 @@ class MessageHandler:
 		self.__downtime_no_active_master = time.time() + 2
 
 	def no_active_master(self):
-		
-
 		if self.__master_alive_thread_started is not True:
 			self.__start(self.__thread_master_alive)
 
@@ -64,7 +63,6 @@ class MessageHandler:
 
 		for floor in slave_floor_down:
 			floor_down += str(floor)	
-
 
 		message = "%s%s%i%i%i%i" % (floor_up,floor_down,slave_id,last_floor,next_floor,direction)
 		self.__send(message,SLAVE_TO_MASTER_PORT)
@@ -87,8 +85,6 @@ class MessageHandler:
 		
 		self.__send(message,MASTER_TO_SLAVE_PORT)
 			
-
-
 	def receive_from_master(self):
 		message = self.__read_message(MASTER_TO_SLAVE_PORT)
 
@@ -104,7 +100,6 @@ class MessageHandler:
 			#self.__master_message['orders_id'] = int(message[9:])
 
 			return self.__master_message
-
 
 	def receive_from_slave(self):				
 		message = self.__read_message(SLAVE_TO_MASTER_PORT)
@@ -122,7 +117,6 @@ class MessageHandler:
 			#self.__slave_message['orders_id'] = int(message[12:])
 
 			return self.__slave_message
-
 
 	def __send(self, data, port):
 		try:
@@ -145,7 +139,6 @@ class MessageHandler:
 			print "Sleeping 1 sec.."
 			time.sleep(1)
 			#############################################################################################
-
 
 	def __read_message(self,port):			
 			###### START THREADS IF NOT ALREADY RUNNING ######
@@ -234,7 +227,6 @@ class MessageHandler:
 			print "MessageHandler.__buffering_master_messages"
 			interrupt_main()
 
-
 	def __buffering_slave_messages_thread(self):
 		try:
 			###### SET THREAD STARTED FLAG  ######
@@ -289,8 +281,6 @@ class MessageHandler:
 							#print self.__receive_buffer_slave	
 					#last_message = message
 					#downtime = time.time() + 0.5
-
-				
 
 		except StandardError as error:
 			print error

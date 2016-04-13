@@ -17,10 +17,10 @@ def main():
 		while startup:
 			time.sleep(TICK*100)
 
-			###### EMPTY MASTER MESSAGE WITH UNUSED ID # TO PUT SLAVES IN 'CHANGING MASTER' STATE ######
+			###### SEND EMPTY MESSAGE WITH UNUSED ID TO PUT SLAVES IN 'CHANGING MASTER' STATE ######
 			message_handler.send_to_slave([0 for floor in range(0,N_FLOORS)],[0 for floor in range(0,N_FLOORS)],N_ELEVATORS+1)
 			
-			###### READ MESSAGES TO REDUCE AMOUNT OF OLD MESSAGES IN BUFFER ######
+			###### READ MESSAGES TO REDUCE AMOUNT OF OLD MESSAGES IN RECEIVE BUFFER ######
 			message_handler.receive_from_slave()
 			
 			if startup_time < time.time():
@@ -49,15 +49,15 @@ def main():
 				(orders_up,orders_down) = master_handler.current_orders()
 
 				message_handler.send_to_slave(orders_up,orders_down,MY_ID)
-								
-		
+
+	###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######							
 	except KeyboardInterrupt:
-		pass
+		pass 
+
 	except StandardError as error:
 		print error
 	finally:
-		print "Exiting master.py.."
+		print "Exiting master.py..."
 				
-
 if __name__ == "__main__":
     main()
