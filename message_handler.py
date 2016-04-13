@@ -252,7 +252,8 @@ class MessageHandler:
 
     def __master_alive_thread(self):
         try:
-            __master_alive_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MessageHandler.__master_alive_thread")
+            __master_alive_thread_watchdog = watchdogs.ThreadWatchdog(1,
+                                                                      "watchdog event: MessageHandler.__master_alive_thread")
             __master_alive_thread_watchdog.start_watchdog()
 
             self.__master_alive_thread_started = True
@@ -278,7 +279,7 @@ class MessageHandler:
             separator_pos = 0
 
             for char in data:
-                if char == ";" and separator == False:
+                if char == ";" and separator is False:
                     separator_pos = counter
                     separator = True
                 counter += 1
@@ -289,7 +290,7 @@ class MessageHandler:
             for n in range(1, separator_pos - 1):
                 test_length += data[n]
 
-            if test_length == message_length and separator == True:
+            if test_length == message_length and separator is True:
                 message = str()
                 for n in range(separator_pos, len(data) - 1):
                     message += data[n]

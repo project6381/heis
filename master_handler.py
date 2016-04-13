@@ -97,7 +97,7 @@ class MasterHandler:
                     self.__assigned_orders_up[floor] = 0
 
                 if (self.__orders_up[floor] == 1) and ((self.__assigned_orders_up[floor] == 0) or (
-                    self.__slaves_online[self.__assigned_orders_up[floor] - 1] == 0)):
+                            self.__slaves_online[self.__assigned_orders_up[floor] - 1] == 0)):
 
                     ###### GIVES ALL ELEVATORS A PRIORITY NUMBER ACCORDING TO POSITION ######
                     elevator_priority_up = [0 for elevator in range(0, N_ELEVATORS)]
@@ -107,14 +107,14 @@ class MasterHandler:
                             elevator_priority_up[elevator] = 0
 
                         elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (
-                            self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and (
-                            (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (
-                            self.__elevator_positions[elevator][DIRECTION] == DIRN_UP)):
+                                    self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and (
+                                    (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (
+                                            self.__elevator_positions[elevator][DIRECTION] == DIRN_UP)):
 
                             elevator_priority_up[elevator] = 40 + N_FLOORS * 40
 
                         elif (self.__elevator_positions[elevator][LAST_FLOOR] < floor) and (
-                            self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
+                                    self.__elevator_positions[elevator][DIRECTION] == DIRN_UP):
 
                             elevator_priority_up[elevator] = 30 + N_FLOORS * 30 + (N_FLOORS - abs(
                                 self.__elevator_positions[elevator][LAST_FLOOR] - floor)) * 10 + randint(0, 9)
@@ -147,7 +147,7 @@ class MasterHandler:
                     self.__assigned_orders_down[floor] = 0
 
                 if (self.__orders_down[floor] == 1) and ((self.__assigned_orders_down[floor] == 0) or (
-                    self.__slaves_online[self.__assigned_orders_down[floor] - 1] == 0)):
+                            self.__slaves_online[self.__assigned_orders_down[floor] - 1] == 0)):
 
                     ###### GIVES ALL ELEVATORS A PRIORITY NUMBER ACCORDING TO POSITION ######
                     elevator_priority_down = [0 for elevator in range(0, N_ELEVATORS)]
@@ -157,14 +157,14 @@ class MasterHandler:
                             elevator_priority_down[elevator] = 0
 
                         elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (
-                            self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and (
-                            (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (
+                                    self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and (
+                                    (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (
 
-                            self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
+                                            self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
                             elevator_priority_down[elevator] = 40 + N_FLOORS * 40
 
                         elif (self.__elevator_positions[elevator][LAST_FLOOR] > floor) and (
-                            self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
+                                    self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN):
 
                             elevator_priority_down[elevator] = 30 + N_FLOORS * 30 + (N_FLOORS - abs(
                                 self.__elevator_positions[elevator][LAST_FLOOR] - floor)) * 10 + randint(0, 9)

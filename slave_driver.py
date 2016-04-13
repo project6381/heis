@@ -64,8 +64,7 @@ class SlaveDriver:
             (unfinished_orders_up, unfinished_orders_down) = self.unfinished_orders()
             for floor in range(0, N_FLOORS):
                 if ((unfinished_orders_up[floor] > 0) and (master_message['orders_up'][floor] == 0)) or (
-                    (unfinished_orders_down[floor] > 0) and (master_message['orders_down'][floor] == 0)):
-
+                            (unfinished_orders_down[floor] > 0) and (master_message['orders_down'][floor] == 0)):
                     self.__changing_master = True
                     return True
 
@@ -211,7 +210,8 @@ class SlaveDriver:
     def __run_elevator_thread(self):
         ##### RUNS THE ELEVATOR ACCORDING TO ELEVATOR ORDERS ######
         try:
-            __run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(5,"watchdog event: SlaveDriver.__run_elevator_thread")
+            __run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(5,
+                                                                      "watchdog event: SlaveDriver.__run_elevator_thread")
             __run_elevator_thread_watchdog.start_watchdog()
 
             last_floor = 0
@@ -237,25 +237,25 @@ class SlaveDriver:
                                 elevator_orders_min = min(elevator_orders_min, floor)
 
                                 if (last_floor == next_floor) and (direction != DIRN_DOWN) and (
-                                    next_floor <= elevator_orders_max):
+                                            next_floor <= elevator_orders_max):
 
                                     next_floor = floor
                                     next_button = button
 
                                 elif (last_floor == next_floor) and (direction != DIRN_UP) and (
-                                    next_floor >= elevator_orders_min):
+                                            next_floor >= elevator_orders_min):
 
                                     next_floor = floor
                                     next_button = button
 
                                 elif (last_floor < next_floor) and (floor < next_floor) and (floor > last_floor) and (
-                                    button != BUTTON_DOWN):
+                                            button != BUTTON_DOWN):
 
                                     next_floor = floor
                                     next_button = button
 
                                 elif (last_floor > next_floor) and (floor > next_floor) and (floor < last_floor) and (
-                                    button != BUTTON_UP):
+                                            button != BUTTON_UP):
 
                                     next_floor = floor
                                     next_button = button
@@ -392,7 +392,8 @@ class SlaveDriver:
     def __read_button_thread(self):
         ###### READS BUTTON PRESS ######
         try:
-            __read_button_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__read_button_thread")
+            __read_button_thread_watchdog = watchdogs.ThreadWatchdog(1,
+                                                                     "watchdog event: SlaveDriver.__read_button_thread")
             __read_button_thread_watchdog.start_watchdog()
 
             while True:
@@ -438,7 +439,8 @@ class SlaveDriver:
     def __save_orders_thread(self):
         ###### SAVES ORDERS TO FILES ######
         try:
-            __save_orders_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__save_orders_thread")
+            __save_orders_thread_watchdog = watchdogs.ThreadWatchdog(1,
+                                                                     "watchdog event: SlaveDriver.__save_orders_thread")
             __save_orders_thread_watchdog.start_watchdog()
 
             while True:
@@ -482,7 +484,7 @@ class SlaveDriver:
                 ###### SAVES MASTER ORDERS UP/DOWN TO FILE # WITH BACKUP ######
                 with self.__master_orders_key:
                     if (self.__master_orders_up != self.__saved_master_orders_up) or (
-                        self.__master_orders_down != self.__saved_master_orders_down):
+                                self.__master_orders_down != self.__saved_master_orders_down):
 
                         with open("master_file_main", "wb") as master_file:
                             pickle.dump((self.__master_orders_up, self.__master_orders_down), master_file)
@@ -537,14 +539,12 @@ class SlaveDriver:
 
                                     ###### UP CALLS	######
                                     if (self.__saved_master_orders_up[floor] == MY_ID) and (
-                                        self.__elevator_orders[floor][BUTTON_UP] == 0):
-
+                                                self.__elevator_orders[floor][BUTTON_UP] == 0):
                                         self.__master_orders_up[floor] = 0
 
                                     ###### DOWN CALLS ######
                                     if (self.__saved_master_orders_down[floor] == MY_ID) and (
-                                        self.__elevator_orders[floor][BUTTON_DOWN] == 0):
-
+                                                self.__elevator_orders[floor][BUTTON_DOWN] == 0):
                                         self.__master_orders_down[floor] = 0
 
         except StandardError as error:
@@ -554,7 +554,8 @@ class SlaveDriver:
 
     def __set_indicators_thread(self):
         try:
-            __set_indicators_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__set_indicators_thread_watchdog")
+            __set_indicators_thread_watchdog = watchdogs.ThreadWatchdog(1,
+                                                                        "watchdog event: SlaveDriver.__set_indicators_thread_watchdog")
             __set_indicators_thread_watchdog.start_watchdog()
 
             while True:
