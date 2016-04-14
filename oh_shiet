@@ -4,3 +4,7 @@
 
 -> noen steder brukes(som regel leses) en variabel før man tar lock() -- dette kan gi feil om den skrivfes til mens den leses. T
     Typisk en IF variabel og så WITH variabel like etterpå
+    
+    -> message_handler.__buffering_slave_messages_thread(self): 
+    LINE 223;    # downtime_no_active_master = time.time() + 2 ################################ forgotten when alive_thead was made?
+    glemt å sette "downtime" før while -- kan påvirke oppstarten, men tror det var sånn i RC1
