@@ -43,7 +43,7 @@ class MasterHandler:
 
 	def i_am_alive(self):			
 		if self.__alive_thread_started is not True:
-			self.__start(self.__thread_alive)
+			self.__start_thread(self.__thread_alive)
 
 		self.__send(str(MY_ID),MASTER_TO_MASTER_PORT)
 
@@ -93,7 +93,7 @@ class MasterHandler:
 				if (self.__orders_up[floor] == 1) and ((self.__assigned_orders_up[floor] == 0) or (self.__slaves_online[self.__assigned_orders_up[floor]-1] == 0)):
 					
 					###### GIVES ALL ELEVATORS A PRIORITY NUMBER FROM '0' TO '40 + N_FLOORS*40' ACCORDING TO POSITION AND DIRECTION ######
-					#	   6 PRIORITY RANGES, ADDED A RANDOM NUMBER WHICH SPREADS ORDERS TO ELEVATORS WITHIN THAT AREA  				 #
+					#	   6 PRIORITY RANGES, ADDED A RANDOM NUMBER WHICH SPREADS ORDERS TO THE CLOSEST ELEVATORS WITH SAME DISTANCE  	 #
 					elevator_priority_up = [0 for elevator in range(0,N_ELEVATORS)]
 					for elevator in range(0,N_ELEVATORS):
 						if self.__slaves_online[elevator] == 0:
@@ -123,7 +123,7 @@ class MasterHandler:
 				if (self.__orders_down[floor] == 1) and  ((self.__assigned_orders_down[floor] == 0) or (self.__slaves_online[self.__assigned_orders_down[floor]-1] == 0)):
 
 					###### GIVES ALL ELEVATORS A PRIORITY NUMBER FROM '0' TO '40 + N_FLOORS*40' ACCORDING TO POSITION AND DIRECTION ######
-					#	   6 PRIORITY RANGES, ADDED A RANDOM NUMBER WHICH SPREADS ORDERS TO ELEVATORS WITHIN THAT AREA  				 #
+					#	   6 PRIORITY RANGES, ADDED A RANDOM NUMBER WHICH SPREADS ORDERS TO THE CLOSEST ELEVATORS WITH SAME DISTANCE  	 #
 					elevator_priority_down = [0 for elevator in range(0,N_ELEVATORS)]
 					for elevator in range(0,N_ELEVATORS):
 						if self.__slaves_online[elevator] == 0:
@@ -185,13 +185,13 @@ class MasterHandler:
 						###### IN CASE NETWORK IS DOWN ######
 						master_id = None
 
-				###### SET MASTERS OFFLINE IF TIMED OUT ######
+				###### SET MASTERS AS OFFLINE IF TIMED OUT ######
 				with self.__masters_online_key:
 					for elevator in range(0,N_ELEVATORS):
 						if master_timeouts[elevator] < time.time():
 							self.__masters_online[elevator] = 0
 
-				###### SET SLAVES OFFLINE IF TIMED OUT ######
+				###### SET SLAVES AS OFFLINE IF TIMED OUT ######
 				with self.__slaves_online_key:
 					for elevator in range(0,N_ELEVATORS):
 						if self.__slave_timeouts[elevator] < time.time():
@@ -221,14 +221,14 @@ class MasterHandler:
 				print "Sleeping 1 sec.."
 				time.sleep(1)
 
-	def __start(self,thread):
+	def __start_thread(self,thread):
 			try:
 				thread.daemon = True
 				thread.start()
 
 			except StandardError as error:
 				print error
-				print "MasterHandler.__start(): Thread: %s operation failed" % (thread.name)
+				print "MasterHandler.__start_thread(): Thread: %s operation failed" % (thread.name)
 				interrupt_main()
 
 	def __errorcheck(self,data):
