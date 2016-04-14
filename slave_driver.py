@@ -229,7 +229,7 @@ class SlaveDriver:
                 elevator_orders_min = N_FLOORS - 1
                 with self.__elevator_orders_key:
                     for floor in range(0, N_FLOORS):
-                        for button in range(0, 3):
+                        for button in range(0, N_BUTTONS):
                             if self.__elevator_orders[floor][button] == 1:
 
                                 elevator_orders_max = max(elevator_orders_max, floor)
@@ -399,7 +399,7 @@ class SlaveDriver:
                 __read_button_thread_watchdog.pet_watchdog()
 
                 for floor in range(0, N_FLOORS):
-                    for button in range(0, 3):
+                    for button in range(0, N_BUTTONS):
                         if (floor == 0 and button == BUTTON_DOWN) or (floor == N_FLOORS - 1 and button == BUTTON_UP):
                             pass
 
@@ -571,7 +571,7 @@ class SlaveDriver:
                     for floor in range(0, N_FLOORS):
 
                         ###### UP CALLS ######
-                        if floor != 3:
+                        if floor != N_FLOORS-1:
                             if self.__saved_master_orders_up[floor] > 0:
                                 self.__panel_interface.set_button_lamp(BUTTON_UP, floor, 1)
                             else:

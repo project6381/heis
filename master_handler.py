@@ -157,8 +157,8 @@ class MasterHandler:
                         elif (self.__elevator_positions[elevator][LAST_FLOOR] == floor) and (
                                     self.__elevator_positions[elevator][NEXT_FLOOR] == floor) and (
                                     (self.__elevator_positions[elevator][DIRECTION] == DIRN_STOP) or (
-
                                             self.__elevator_positions[elevator][DIRECTION] == DIRN_DOWN)):
+
                             elevator_priority_down[elevator] = 40 + N_FLOORS * 40
 
                         elif (self.__elevator_positions[elevator][LAST_FLOOR] > floor) and (
