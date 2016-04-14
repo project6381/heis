@@ -206,7 +206,7 @@ class SlaveHandler:
 
 	def __run_elevator_thread(self):
 		try:
-			__run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(5,"watchdog event: SlaveHandler.__run_elevator_thread")
+			__run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(3,"watchdog event: SlaveHandler.__run_elevator_thread")
 			__run_elevator_thread_watchdog.start_watchdog()
 
 			last_floor = 0

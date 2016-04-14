@@ -10,7 +10,7 @@ from config_parameters import MY_ID, TICK, N_ELEVATORS
 
 def main():
 	try:
-		main_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: main_watchdog")
+		main_watchdog = watchdogs.ThreadWatchdog(3,"watchdog event: main_watchdog")
 		main_watchdog.start_watchdog()
 
 		message_handler = MessageHandler()
@@ -45,9 +45,10 @@ def main():
 
 					(buttons_up,buttons_down) = slave_handler.external_buttons_pressed()
 			
-					if not slave_handler.move_timeout():
-						message_handler.send_to_master(buttons_up,buttons_down,MY_ID,position[0],position[1],position[2])
+					if slave_handler.movement_timeout():
 						print "ERROR! Elevator not moving?"
+					else:
+						message_handler.send_to_master(buttons_up,buttons_down,MY_ID,position[0],position[1],position[2])						
 
 			if console_message != last_console_message:
 				print console_message
