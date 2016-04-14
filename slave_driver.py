@@ -210,8 +210,7 @@ class SlaveDriver:
     def __run_elevator_thread(self):
         ##### RUNS THE ELEVATOR ACCORDING TO ELEVATOR ORDERS ######
         try:
-            __run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(5,
-                                                                      "watchdog event: SlaveDriver.__run_elevator_thread")
+            __run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(5, "watchdog: __run_elevator_thread")
             __run_elevator_thread_watchdog.start_watchdog()
 
             last_floor = 0
@@ -296,8 +295,8 @@ class SlaveDriver:
                     ###### CHECKS THAT ELEVATOR ACTUALLY STOPPED ######
                     read_floor = self.__elevator_interface.get_floor_sensor_signal()
                     if read_floor != last_floor:
-                        print "read_floor != last_floor"
-                        print direction
+                        print "read_floor != last_floor" #################################################### YES?
+                        print direction ##################################################################### YES?
 
                         ###### RUNS ELEVATOR IN OPPOSITE DIRECTION ######
                         if direction == DIRN_STOP:
@@ -392,8 +391,7 @@ class SlaveDriver:
     def __read_button_thread(self):
         ###### READS BUTTON PRESS ######
         try:
-            __read_button_thread_watchdog = watchdogs.ThreadWatchdog(1,
-                                                                     "watchdog event: SlaveDriver.__read_button_thread")
+            __read_button_thread_watchdog = watchdogs.ThreadWatchdog(1, "watchdog: __read_button_thread")
             __read_button_thread_watchdog.start_watchdog()
 
             while True:
@@ -439,8 +437,7 @@ class SlaveDriver:
     def __save_orders_thread(self):
         ###### SAVES ORDERS TO FILES ######
         try:
-            __save_orders_thread_watchdog = watchdogs.ThreadWatchdog(1,
-                                                                     "watchdog event: SlaveDriver.__save_orders_thread")
+            __save_orders_thread_watchdog = watchdogs.ThreadWatchdog(1, "watchdog: __save_orders_thread")
             __save_orders_thread_watchdog.start_watchdog()
 
             while True:
@@ -460,14 +457,16 @@ class SlaveDriver:
                         try:
                             with open("internal_file_main", "rb") as internal_file:
                                 self.__saved_internal_orders = pickle.load(internal_file)
-                            assert self.__internal_orders == self.__saved_internal_orders, "unknown error: loading internal_file_main"
+                            assert (self.__internal_orders == self.__saved_internal_orders,
+                                    "unknown error: loading internal_file_main")
 
                         except StandardError as error:
                             print error
 
                             with open("internal_file_backup", "rb") as internal_file:
                                 self.__saved_internal_orders = pickle.load(internal_file)
-                            assert self.__internal_orders == self.__saved_internal_orders, "unknown error: loading internal_file_backup"
+                            assert (self.__internal_orders == self.__saved_internal_orders,
+                                    "unknown error: loading internal_file_backup")
 
                         ###### ADDS SAVED INTERNAL ORDERS TO ELEVATOR ORDERS ######
                         with self.__elevator_orders_key:
@@ -497,8 +496,11 @@ class SlaveDriver:
                                 (self.__saved_master_orders_up, self.__saved_master_orders_down) = pickle.load(
                                     master_file)
 
-                            assert self.__master_orders_up == self.__saved_master_orders_up, "unknown error: loading master_file_main"
-                            assert self.__master_orders_down == self.__saved_master_orders_down, "unknown error: loading master_file_main"
+                            assert (self.__master_orders_up == self.__saved_master_orders_up,
+                                    "unknown error: loading master_file_main")
+
+                            assert (self.__master_orders_down == self.__saved_master_orders_down,
+                                    "unknown error: loading master_file_main")
 
                         except StandardError as error:
                             print error
@@ -507,8 +509,11 @@ class SlaveDriver:
                                 (self.__saved_master_orders_up, self.__saved_master_orders_down) = pickle.load(
                                     master_file)
 
-                            assert self.__master_orders_up == self.__saved_master_orders_up, "unknown error: loading master_file_backup"
-                            assert self.__master_orders_down == self.__saved_master_orders_down, "unknown error: loading master_file_backup"
+                            assert (self.__master_orders_up == self.__saved_master_orders_up,
+                                    "unknown error: loading master_file_backup")
+
+                            assert (self.__master_orders_down == self.__saved_master_orders_down,
+                                    "unknown error: loading master_file_backup")
 
                         ###### ADDS SAVED MASTER ORDERS UP/DOWN WITH MY ID TO ELEVATOR ORDERS ######
                         with self.__elevator_orders_key:
@@ -554,8 +559,7 @@ class SlaveDriver:
 
     def __set_indicators_thread(self):
         try:
-            __set_indicators_thread_watchdog = watchdogs.ThreadWatchdog(1,
-                                                                        "watchdog event: SlaveDriver.__set_indicators_thread_watchdog")
+            __set_indicators_thread_watchdog = watchdogs.ThreadWatchdog(1, "watchdog: __set_indicators_thread_watchdog")
             __set_indicators_thread_watchdog.start_watchdog()
 
             while True:

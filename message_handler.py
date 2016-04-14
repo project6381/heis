@@ -220,7 +220,7 @@ class MessageHandler:
                 print error
                 interrupt_main()
 
-            # downtime_no_active_master = time.time() + 2 ################################ glemt når alive_thread ble laget?
+            # downtime_no_active_master = time.time() + 2 ################################ forgotten when alive_thead was made?
 
             while True:
                 try:
@@ -252,8 +252,7 @@ class MessageHandler:
 
     def __master_alive_thread(self):
         try:
-            __master_alive_thread_watchdog = watchdogs.ThreadWatchdog(1,
-                                                                      "watchdog event: MessageHandler.__master_alive_thread")
+            __master_alive_thread_watchdog = watchdogs.ThreadWatchdog(1, "watchdog event: __master_alive_thread")
             __master_alive_thread_watchdog.start_watchdog()
 
             self.__master_alive_thread_started = True

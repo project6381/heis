@@ -38,9 +38,7 @@ def main():
                         message_handler.send_to_master(buttons_up, buttons_down, MY_ID, position[0], position[1],
                                                        position[2])
 
-
-
-                        ###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######
+    ###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######
     except KeyboardInterrupt:
         pass
     except StandardError as error:

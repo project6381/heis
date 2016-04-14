@@ -22,18 +22,16 @@ class MasterHandler:
         self.__slaves_online_key = Lock()
 
         self.__alive_thread_started = False
-        self.__timeout_thread_started = False
+        # self.__timeout_thread_started = False # Forgotten ? ####################################################
         self.__thread_alive = Thread(target=self.__alive_thread, args=(), name="Buffering master alive thread")
 
-        self.__orders_up = [0 for floor in range(0, N_FLOORS)]
-        self.__orders_down = [0 for floor in range(0, N_FLOORS)]
         self.__orders_up = [0 for floor in range(0, N_FLOORS)]
         self.__orders_down = [0 for floor in range(0, N_FLOORS)]
 
         self.__downtime_slaves_online = [time.time() + 2 for elevator in range(0, N_ELEVATORS)]
 
     def current_assigned_orders(self):
-        return (self.__assigned_orders_up, self.__assigned_orders_down)
+        return self.__assigned_orders_up, self.__assigned_orders_down
 
     def process_slave_event(self, slave_message):
         self.__update_slave_online(slave_message['slave_id'])
