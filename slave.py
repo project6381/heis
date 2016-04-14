@@ -10,7 +10,7 @@ from config_parameters import MY_ID, TICK, N_ELEVATORS
 
 def main():
 	try:
-		main_watchdog = watchdogs.ThreadWatchdog(3,"watchdog event: main_watchdog")
+		main_watchdog = watchdogs.ThreadWatchdog(5,"watchdog event: main_watchdog")
 		main_watchdog.start_watchdog()
 
 		message_handler = MessageHandler()
