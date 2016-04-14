@@ -8,6 +8,9 @@ from config_parameters import MY_ID, TICK, N_ELEVATORS
 
 def main():
 	try:
+		main_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: main_watchdog")
+		main_watchdog.start_watchdog()
+
 		message_handler = MessageHandler()
 		slave_driver = SlaveDriver()
 
@@ -16,6 +19,7 @@ def main():
 
 		while True:
 			time.sleep(TICK*N_ELEVATORS)
+			main_watchdog.pet_watchdog()
 
 			position = slave_driver.read_position()
 			master_message = message_handler.receive_from_master()

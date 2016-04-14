@@ -92,8 +92,8 @@ class MasterHandler:
 
 				if (self.__orders_up[floor] == 1) and ((self.__assigned_orders_up[floor] == 0) or (self.__slaves_online[self.__assigned_orders_up[floor]-1] == 0)):
 					
-					###### GIVES ALL ELEVATORS A PRIORITY NUMBER FROM '0' TO '40 + N_FLOORS*40' ACCORDING TO POSITION AND DIRECTION ######
-					#	   6 PRIORITY RANGES, ADDED A RANDOM NUMBER WHICH SPREADS ORDERS TO THE CLOSEST ELEVATORS WITH SAME DISTANCE  	 #
+					###### GIVES ALL ELEVATORS A PRIORITY NUMBER FROM '0' TO '40 + N_FLOORS*40' ACCORDING TO POSITION, DIRECTION AND DISTANCE ######
+					#	   A RANDOM NUMBER SPREADS ORDERS AMONG EQUAL CANDIDATES   	 #
 					elevator_priority_up = [0 for elevator in range(0,N_ELEVATORS)]
 					for elevator in range(0,N_ELEVATORS):
 						if self.__slaves_online[elevator] == 0:
@@ -122,8 +122,8 @@ class MasterHandler:
 
 				if (self.__orders_down[floor] == 1) and  ((self.__assigned_orders_down[floor] == 0) or (self.__slaves_online[self.__assigned_orders_down[floor]-1] == 0)):
 
-					###### GIVES ALL ELEVATORS A PRIORITY NUMBER FROM '0' TO '40 + N_FLOORS*40' ACCORDING TO POSITION AND DIRECTION ######
-					#	   6 PRIORITY RANGES, ADDED A RANDOM NUMBER WHICH SPREADS ORDERS TO THE CLOSEST ELEVATORS WITH SAME DISTANCE  	 #
+					###### GIVES ALL ELEVATORS A PRIORITY NUMBER FROM '0' TO '40 + N_FLOORS*40' ACCORDING TO POSITION, DIRECTION AND DISTANCE ######
+					#	   A RANDOM NUMBER SPREADS ORDERS AMONG EQUAL CANDIDATES   	 #
 					elevator_priority_down = [0 for elevator in range(0,N_ELEVATORS)]
 					for elevator in range(0,N_ELEVATORS):
 						if self.__slaves_online[elevator] == 0:

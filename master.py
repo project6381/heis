@@ -8,6 +8,9 @@ from config_parameters import N_ELEVATORS, MY_ID, TICK
 
 def main():
 	try:
+		main_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: main_watchdog")
+		main_watchdog.start_watchdog()
+
 		message_handler = MessageHandler()
 		master_handler = MasterHandler()
 
@@ -21,6 +24,7 @@ def main():
 
 		while startup:
 			time.sleep(TICK*100)
+			main_watchdog.pet_watchdog()
 
 			###### SEND EMPTY MESSAGE WITH UNUSED ID TO PUT SLAVES IN 'CHANGING MASTER' STATE ######
 			message_handler.send_to_slave([0 for floor in range(0,N_FLOORS)],[0 for floor in range(0,N_FLOORS)],N_ELEVATORS+1)
@@ -38,6 +42,7 @@ def main():
 
 		while True:
 			time.sleep(TICK)
+			main_watchdog.pet_watchdog()
 
 			if not message_handler.connected_to_network():
 				raise KeyboardInterrupt

@@ -254,13 +254,13 @@ class MessageHandler:
 	def __master_alive_thread(self):
 		try:
 			__master_alive_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: MessageHandler.__master_alive_thread")
-			__master_alive_thread_watchdog.StartWatchdog()
+			__master_alive_thread_watchdog.start_watchdog()
 
 			self.__master_alive_thread_started = True
 
 			while True:				
 				time.sleep(TICK*100)
-				__master_alive_thread_watchdog.PetWatchdog()
+				__master_alive_thread_watchdog.pet_watchdog()
 
 				if self.__timeout_no_active_master < time.time():
 					with self.__no_active_master_key:
