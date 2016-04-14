@@ -1,13 +1,18 @@
+import time
+
 from master_handler import MasterHandler
 from message_handler import MessageHandler
 from ported_driver.constants import N_FLOORS
 from config_parameters import N_ELEVATORS, MY_ID, TICK
-import time
+
 
 def main():
 	try:
 		message_handler = MessageHandler()
 		master_handler = MasterHandler()
+
+		console_message = "Undefined console_message"
+		last_console_message = "Undefined console_message"
 
 		startup = True
 		startup_time = time.time() + 1
@@ -45,10 +50,18 @@ def main():
 				master_handler.process_slave_event(slave_message)		
 
 			if master_handler.active_master() == MY_ID:
+				console_message = "Master (ID: " + str(MY_ID) + "): active!"
 
 				(assigned_orders_up,assigned_orders_down) = master_handler.current_assigned_orders()
 
 				message_handler.send_to_slave(assigned_orders_up,assigned_orders_down,MY_ID)
+
+			else:
+				console_message = "Master (ID: " + str(MY_ID) + "): inactive..."
+
+			if console_message != last_console_message:
+				print console_message
+				last_console_message = console_message
 
 	###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######							
 	except KeyboardInterrupt:

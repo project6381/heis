@@ -37,7 +37,9 @@ def main():
 					if not slave_driver.move_timeout():
 						message_handler.send_to_master(buttons_up,buttons_down,MY_ID,position[0],position[1],position[2])
 
-
+			if console_message != last_console_message:
+				print console_message
+				last_console_message = console_message
 
 	###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######
 	#except KeyboardInterrupt:
