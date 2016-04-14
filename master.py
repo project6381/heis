@@ -1,5 +1,7 @@
 import time
 
+import watchdogs
+
 from master_handler import MasterHandler
 from message_handler import MessageHandler
 from ported_driver.constants import N_FLOORS
