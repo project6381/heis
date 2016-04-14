@@ -12,7 +12,7 @@ from ported_driver.constants import DIRN_STOP, DIRN_UP, DIRN_DOWN, BUTTON_UP, BU
 from config_parameters import MY_ID, TICK, MOVE_TIMEOUT
 
 
-class SlaveDriver:
+class SlaveHandler:
 	def __init__(self):
 		self.__elevator_interface = ElevatorInterface()
 		self.__panel_interface = PanelInterface()
@@ -42,10 +42,10 @@ class SlaveDriver:
 		self.__offline_mode = False
 		self.__changing_master = False
 
-		self.__thread_run_elevator = Thread(target = self.__run_elevator_thread, args = (), name = "SlaveDriver.__run_elevator_thread")
-		self.__thread_read_button = Thread(target = self.__read_buttons_thread, args = (), name = "SlaveDriver.__thread_read_button")
-		self.__thread_set_indicators = Thread(target = self.__indicators_thread, args = (), name = "SlaveDriver.__thread_set_indicators")
-		self.__thread_save_orders = Thread(target = self.__process_orders_thread, args = (), name = "SlaveDriver.__thread_save_orders")
+		self.__thread_run_elevator = Thread(target = self.__run_elevator_thread, args = (), name = "SlaveHandler.__run_elevator_thread")
+		self.__thread_read_button = Thread(target = self.__read_buttons_thread, args = (), name = "SlaveHandler.__thread_read_button")
+		self.__thread_set_indicators = Thread(target = self.__indicators_thread, args = (), name = "SlaveHandler.__thread_set_indicators")
+		self.__thread_save_orders = Thread(target = self.__process_orders_thread, args = (), name = "SlaveHandler.__thread_save_orders")
 
 		self.__init_startup_sequence()
 
@@ -123,7 +123,7 @@ class SlaveDriver:
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__init_startup_sequence"
+			print "SlaveHandler.__init_startup_sequence"
 			interrupt_main()
 			
 	def __find_a_floor(self):
@@ -144,7 +144,7 @@ class SlaveDriver:
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__find_a_floor"
+			print "SlaveHandler.__find_a_floor"
 			interrupt_main()
 
 	def __load_elevator_orders_from_file(self):
@@ -157,7 +157,7 @@ class SlaveDriver:
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__load_elevator_orders_from_file"
+			print "SlaveHandler.__load_elevator_orders_from_file"
 			print "master_file_main"
 
 			try:
@@ -168,7 +168,7 @@ class SlaveDriver:
 
 			except StandardError as error:
 				print error
-				print "SlaveDriver.__load_elevator_orders_from_file"
+				print "SlaveHandler.__load_elevator_orders_from_file"
 				print "master_file_backup"
 
 		###### ASSIGNS OLD MASTER ORDERS TO ELEVATOR ORDERS ######
@@ -186,7 +186,7 @@ class SlaveDriver:
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__load_elevator_orders_from_file"
+			print "SlaveHandler.__load_elevator_orders_from_file"
 			print "internal_file_main"
 
 			try:
@@ -196,7 +196,7 @@ class SlaveDriver:
 
 			except StandardError as error:
 				print error
-				print "SlaveDriver.__load_elevator_orders_from_file"
+				print "SlaveHandler.__load_elevator_orders_from_file"
 				print "internal_file_backup"
 
 		###### ASSIGNS OLD INTERNAL ORDERS TO ELEVATOR ORDERS ######
@@ -206,7 +206,7 @@ class SlaveDriver:
 
 	def __run_elevator_thread(self):
 		try:
-			__run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(5,"watchdog event: SlaveDriver.__run_elevator_thread")
+			__run_elevator_thread_watchdog = watchdogs.ThreadWatchdog(5,"watchdog event: SlaveHandler.__run_elevator_thread")
 			__run_elevator_thread_watchdog.start_watchdog()
 
 			last_floor = 0
@@ -347,12 +347,12 @@ class SlaveDriver:
 				
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__run_elevator_thread"
+			print "SlaveHandler.__run_elevator_thread"
 			interrupt_main()
 
 	def __read_buttons_thread(self):
 		try:
-			__read_buttons_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__read_buttons_thread")
+			__read_buttons_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveHandler.__read_buttons_thread")
 			__read_buttons_thread_watchdog.start_watchdog()
 
 			while True:
@@ -389,12 +389,12 @@ class SlaveDriver:
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__read_buttons_thread"
+			print "SlaveHandler.__read_buttons_thread"
 			interrupt_main()
 
 	def __process_orders_thread(self):
 		try:
-			__process_orders_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__process_orders_thread")
+			__process_orders_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveHandler.__process_orders_thread")
 			__process_orders_thread_watchdog.start_watchdog()
 
 			while True:
@@ -487,12 +487,12 @@ class SlaveDriver:
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__process_orders_thread"
+			print "SlaveHandler.__process_orders_thread"
 			interrupt_main()
 
 	def __indicators_thread(self):
 		try:
-			__indicators_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveDriver.__indicators_thread_watchdog")
+			__indicators_thread_watchdog = watchdogs.ThreadWatchdog(1,"watchdog event: SlaveHandler.__indicators_thread_watchdog")
 			__indicators_thread_watchdog.start_watchdog()
 
 			while True:
@@ -542,6 +542,6 @@ class SlaveDriver:
 
 		except StandardError as error:
 			print error
-			print "SlaveDriver.__indicators_thread"
+			print "SlaveHandler.__indicators_thread"
 			interrupt_main()
 

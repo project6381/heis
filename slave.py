@@ -2,7 +2,7 @@ import time
 
 import watchdogs
 
-from slave_driver import SlaveDriver
+from slave_handler import SlaveHandler
 from message_handler import MessageHandler
 from ported_driver.constants import N_FLOORS
 from config_parameters import MY_ID, TICK, N_ELEVATORS
@@ -14,7 +14,7 @@ def main():
 		main_watchdog.start_watchdog()
 
 		message_handler = MessageHandler()
-		slave_driver = SlaveDriver()
+		slave_handler = SlaveHandler()
 
 		console_message = "Undefined console_message"
 		last_console_message = "Undefined console_message"
@@ -23,29 +23,29 @@ def main():
 			time.sleep(TICK*N_ELEVATORS)
 			main_watchdog.pet_watchdog()
 
-			position = slave_driver.read_position()
+			position = slave_handler.read_position()
 			master_message = message_handler.receive_from_master()
 
 			if message_handler.no_active_master():
-				slave_driver.set_offline_mode(True)
+				slave_handler.set_offline_mode(True)
 				console_message = "Slave (ID: " + str(MY_ID) + "): offline mode active!"
 			else:
-				slave_driver.set_offline_mode(False)
+				slave_handler.set_offline_mode(False)
 				console_message = "Slave (ID: " + str(MY_ID) + "): offline mode inactive..."	
 			
 			if master_message is not None:	
-				if slave_driver.changing_master(master_message):	
+				if slave_handler.changing_master(master_message):	
 					
 					###### SENDS UNFINISHED ORDERS AS BUTTON PRESSES ######
-					(unfinished_orders_up,unfinished_orders_down) = slave_driver.unfinished_orders()
+					(unfinished_orders_up,unfinished_orders_down) = slave_handler.unfinished_orders()
 					message_handler.send_to_master(unfinished_orders_up,unfinished_orders_down,MY_ID,position[0],position[1],position[2])			 
 
 				else:
-					slave_driver.update_master_orders(master_message['orders_up'][:],master_message['orders_down'][:])	
+					slave_handler.update_master_orders(master_message['orders_up'][:],master_message['orders_down'][:])	
 
-					(buttons_up,buttons_down) = slave_driver.external_buttons_pressed()
+					(buttons_up,buttons_down) = slave_handler.external_buttons_pressed()
 			
-					if not slave_driver.move_timeout():
+					if not slave_handler.move_timeout():
 						message_handler.send_to_master(buttons_up,buttons_down,MY_ID,position[0],position[1],position[2])
 						print "ERROR! Elevator not moving?"
 
