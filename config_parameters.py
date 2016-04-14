@@ -4,6 +4,10 @@ MY_ID = 2
 # System "tick" -- delay for time.sleep()
 TICK = 0.001
 
+# Timeouts
+MASTER_TIMEOUT = 2
+SLAVE_TIMEOUT = 2
+
 # Number of elevators
 N_ELEVATORS = 4
 
