@@ -9,7 +9,7 @@ from config_parameters import N_ELEVATORS, MY_ID, TICK
 
 
 def main():
-	#ry:
+	try:
 		main_watchdog = watchdogs.ThreadWatchdog(5,"watchdog event: main_watchdog")
 		main_watchdog.start_watchdog()
 
@@ -71,13 +71,13 @@ def main():
 				last_console_message = console_message
 
 	###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######							
-	# except KeyboardInterrupt:
-	# 	pass 
+	except KeyboardInterrupt:
+		pass 
 
-	# except StandardError as error:
-	# 	print error
-	# finally:
-	# 	print "Exiting master.py..."
+	except StandardError as error:
+		print error
+	finally:
+		print "Exiting master.py..."
 				
 if __name__ == "__main__":
     main()
