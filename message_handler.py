@@ -5,6 +5,7 @@ from threading import Thread, Lock
 from thread import interrupt_main
 
 import watchdogs
+import network_communication
 
 from ported_driver.constants import N_FLOORS
 from config_parameters import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, TICK, MASTER_TIMEOUT
@@ -12,6 +13,7 @@ from config_parameters import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, TICK, 
 
 class MessageHandler:
 	def __init__(self):
+
 		self.__slave_message = {'buttons_up': [0 for floor in range(0,N_FLOORS)],
 								'buttons_down': [0 for floor in range(0,N_FLOORS)],
 								'slave_id': 0,
@@ -114,23 +116,19 @@ class MessageHandler:
 
 	def __send(self, data, port):
 		try:
-			send = ('<broadcast>', port)
-			udp = socket(AF_INET, SOCK_DGRAM)
-			udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+			broadcaster = network_communication.Broadcaster(port)
+			broadcaster.broadcast(data)
 
-			###### MESSAGE IN FORMAT '<message_length;message>' FOR ERRORCHECK ######
-			message = '<%s;%s>' % (str(len(data)), data)
-
-			udp.sendto(message, send)
-			udp.close()
+			##### NO EXCEPTION RAISED ABOVE IS TAKEN TO IMPLY CONNECTION TO NETWORK ######
 			with self.__is_connected_to_network_key:
 				self.__is_connected_to_network = True
 
 		except IOError as error:
-			print error
-			print "MessageHandler.__send: Failed. Network down?"
 			with self.__is_connected_to_network_key:
 				self.__is_connected_to_network = False
+
+			print error
+			print "MessageHandler.__send: Failed. Network down?"
 			print "Sleeping 1 sec.."
 			time.sleep(1)
 
@@ -170,10 +168,7 @@ class MessageHandler:
 			self.__buffering_master_messages_thread_started = True
 
 			try:
-				port = ('', SLAVE_TO_MASTER_PORT)
-				udp = socket(AF_INET, SOCK_DGRAM)
-				udp.bind(port)
-				udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+				master_message_receiver = network_communication.Receiver(SLAVE_TO_MASTER_PORT)
 
 			except IOError as error:
 				print error
@@ -183,17 +178,15 @@ class MessageHandler:
 
 			while True:
 				try:
-					data, address = udp.recvfrom(1024)
+					message = master_message_receiver.wait_for_and_receive_broadcast()
 
 				except IOError as error:
 					print error
 					print "MessageHandler.__buffering_master_messages_thread:"
-					print "udp.recvfrom(1024) failed!"
+					print "Receive failed!"
 					print "Sleeping 1 sec.."
 					time.sleep(1)
 				
-				message = self.__errorcheck(data)
-
 				if message is not None:
 					with self.__receive_buffer_master_key:
 						if message in self.__receive_buffer_master:
@@ -211,10 +204,7 @@ class MessageHandler:
 			self.__buffering_slave_messages_thread_started = True
 
 			try:
-				port = ('', MASTER_TO_SLAVE_PORT)
-				udp = socket(AF_INET, SOCK_DGRAM)
-				udp.bind(port)
-				udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+				slave_message_receiver = network_communication.Receiver(MASTER_TO_SLAVE_PORT)
 
 			except IOError as error:
 				print error
@@ -224,16 +214,14 @@ class MessageHandler:
 			
 			while True:
 				try:
-					data, address = udp.recvfrom(1024)
+					message = slave_message_receiver.wait_for_and_receive_broadcast()
 
 				except IOError as error:
 					print error
 					print "MessageHandler.__buffering_slave_messages_thread:"
-					print "udp.recvfrom(1024) failed!"
+					print "Receive failed!"
 					print "Sleeping 1 sec.."
 					time.sleep(1)
-
-				message = self.__errorcheck(data)
 
 				if message is not None:
 					self.__timeout_no_active_master = time.time() + MASTER_TIMEOUT
@@ -270,33 +258,3 @@ class MessageHandler:
 			print error
 			print "MessageHandler.__master_alive"
 			interrupt_main()
-
-	def __errorcheck(self,data):
-
-		###### CHECKS THAT THE MESSAGE HAS THE FORMAT '<provided_message_length;message>' ######
-		if (data[0] == '<') and (data[len(data) -1] == '>'):
-			character_counter = 1
-			separator_found = False
-			separator_position = 0
-
-			for character in data:
-				if (character == ";") and (separator_found == False):
-					separator_position = character_counter
-					separator_found = True
-				character_counter += 1
-
-			measured_message_length = str(len(data) - separator_position - 1)
-			provided_message_length = str()
-
-			for character in range(1, separator_position - 1):
-				provided_message_length += data[character]
-
-			if (provided_message_length == measured_message_length) and (separator_found == True):
-				message = str()
-				for character in range(separator_position,len(data) - 1):
-					message += data[character]
-				return message
-			else:
-				return None
-		else:
-			return None

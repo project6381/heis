@@ -5,6 +5,8 @@ from random import randint
 from threading import Thread, Lock
 from thread import interrupt_main
 
+import network_communication
+
 from ported_driver.constants import N_FLOORS, LAST_FLOOR, NEXT_FLOOR, DIRECTION, DIRN_STOP, DIRN_DOWN, DIRN_UP
 from config_parameters import MASTER_TO_MASTER_PORT, N_ELEVATORS, MY_ID, MASTER_TIMEOUT, SLAVE_TIMEOUT
 		
@@ -28,6 +30,13 @@ class MasterHandler:
 		self.__thread_alive = Thread(target = self.__alive_thread, args = (),name = "MasterHandler.__alive_thread")
 	
 		self.__slave_timeouts = [time.time() + SLAVE_TIMEOUT for elevator in range(0,N_ELEVATORS)]
+
+		try:
+			self.__master_to_master_broadcaster = network_communication.Broadcaster(MASTER_TO_MASTER_PORT)
+		
+		except IOError as error:
+			print error
+			print "MasterHandler.__init__: Broadcaster init failed. Network down?"
 		
 	def current_assigned_orders(self):
 		return (self.__assigned_orders_up,self.__assigned_orders_down)
@@ -45,7 +54,14 @@ class MasterHandler:
 		if self.__alive_thread_started is not True:
 			self.__start_thread(self.__thread_alive)
 
-		self.__send(str(MY_ID),MASTER_TO_MASTER_PORT)
+		try:
+			self.__master_to_master_broadcaster.broadcast(str(MY_ID))
+
+		except IOError as error:
+			print error
+			print "MasterHandler.i_am_alive: Failed. Network down?"
+			print "Sleeping 1 sec.."
+			time.sleep(1)
 
 	def active_master(self):
 
@@ -152,10 +168,7 @@ class MasterHandler:
 			master_timeouts = [time.time() + MASTER_TIMEOUT for elevator in range(0,N_ELEVATORS)]
 
 			try:
-				port = ('', MASTER_TO_MASTER_PORT)
-				udp = socket(AF_INET, SOCK_DGRAM)
-				udp.bind(port)
-				udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+				master_message_receiver = network_communication.Receiver(MASTER_TO_MASTER_PORT)
 
 			except IOError as error:
 				print error
@@ -165,16 +178,14 @@ class MasterHandler:
 
 			while True:
 				try:
-					data, address = udp.recvfrom(1024)
+					master_id = master_message_receiver.wait_for_and_receive_broadcast()
 
 				except IOError as error:
 					print error
 					print "MasterHandler.__alive_message_handler:"
-					print "udp.recvfrom(1024) failed!"
+					print "Receive failed!"
 					print "Sleeping 1 sec.."
 					time.sleep(1)
-
-				master_id = self.__errorcheck(data)
 	
 				###### UPDATE LIST OF ONLINE MASTERS ######
 				if master_id is not None:
@@ -201,25 +212,6 @@ class MasterHandler:
 			print error
 			print "MasterHandler.__alive_message_handler"
 			interrupt_main()
-	
-	
-	def __send(self, data, port):
-			try:
-				send = ('<broadcast>', port)
-				udp = socket(AF_INET, SOCK_DGRAM)
-				udp.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-				
-				###### MESSAGE IN FORMAT '<message_length;message>' FOR ERRORCHECK ######
-				message = '<%s;%s>' % (str(len(data)), data)
-
-				udp.sendto(message, send)
-				udp.close()
-
-			except IOError as error:
-				print error
-				print "MasterHandler.__send: Failed. Network down?"
-				print "Sleeping 1 sec.."
-				time.sleep(1)
 
 	def __start_thread(self,thread):
 			try:
@@ -230,33 +222,3 @@ class MasterHandler:
 				print error
 				print "MasterHandler.__start_thread(): Thread: %s operation failed" % (thread.name)
 				interrupt_main()
-
-	def __errorcheck(self,data):
-
-		###### CHECKS THAT THE MESSAGE HAS THE FORMAT '<provided_message_length;message>' ######
-		if (data[0] == '<') and (data[len(data) -1] == '>'):
-			character_counter = 1
-			separator_found = False
-			separator_position = 0
-
-			for character in data:
-				if (character == ";") and (separator_found == False):
-					separator_position = character_counter
-					separator_found = True
-				character_counter += 1
-
-			measured_message_length = str(len(data) - separator_position - 1)
-			provided_message_length = str()
-
-			for character in range(1, separator_position - 1):
-				provided_message_length += data[character]
-
-			if (provided_message_length == measured_message_length) and (separator_found == True):
-				message = str()
-				for character in range(separator_position,len(data) - 1):
-					message += data[character]
-				return message
-			else:
-				return None
-		else:
-			return None
