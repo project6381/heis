@@ -172,7 +172,7 @@ class MasterHandler:
 
 			except IOError as error:
 				print error
-				print "MasterHandler.__alive_message_handler:"
+				print "MasterHandler.__alive_thread:"
 				print "Failed setting up udp sockets"
 				interrupt_main()
 
@@ -182,7 +182,7 @@ class MasterHandler:
 
 				except IOError as error:
 					print error
-					print "MasterHandler.__alive_message_handler:"
+					print "MasterHandler.__alive_thread:"
 					print "Receive failed!"
 					print "Sleeping 1 sec.."
 					time.sleep(1)
@@ -210,7 +210,7 @@ class MasterHandler:
 
 		except StandardError as error:
 			print error
-			print "MasterHandler.__alive_message_handler"
+			print "MasterHandler.__alive_thread"
 			interrupt_main()
 
 	def __start_thread(self,thread):
