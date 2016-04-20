@@ -12,4 +12,3 @@ MASTER_TO_MASTER_PORT = 27854
 
 # System "tick" -- delay for time.sleep()
 TICK = 0.001
-

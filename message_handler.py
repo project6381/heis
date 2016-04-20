@@ -8,7 +8,7 @@ from config_parameters import MASTER_TO_SLAVE_PORT, SLAVE_TO_MASTER_PORT, TICK, 
 from ported_driver.constants import N_FLOORS
 
 
-class MessageHandler:
+class MessageHandler(object):
     def __init__(self):
 
         self.__slave_message = {'buttons_up': [0 for floor in range(0, N_FLOORS)],
@@ -160,7 +160,7 @@ class MessageHandler:
 
         except StandardError as error:
             print error
-            print "MessageHandler.__start_thread(): Thread: %s operation failed" % (thread.name)
+            print "MessageHandler.__start_thread(): Thread: %s operation failed" % thread.name
             interrupt_main()
 
     def __buffering_master_messages_thread(self):
@@ -241,8 +241,7 @@ class MessageHandler:
 
     def __master_alive_thread(self):
         try:
-            __master_alive_thread_watchdog = watchdogs.ThreadWatchdog(1,
-                                                                      "watchdog event: MessageHandler.__master_alive_thread")
+            __master_alive_thread_watchdog = watchdogs.ThreadWatchdog(1, "Watchdog: __master_alive_thread")
             __master_alive_thread_watchdog.start_watchdog()
 
             self.__master_alive_thread_started = True

@@ -1,83 +1,84 @@
 import time
 
 import watchdogs
-
+from config_parameters import N_ELEVATORS, MY_ID, TICK
 from master_handler import MasterHandler
 from message_handler import MessageHandler
 from ported_driver.constants import N_FLOORS
-from config_parameters import N_ELEVATORS, MY_ID, TICK
 
 
 def main():
-	try:
-		main_watchdog = watchdogs.ThreadWatchdog(5,"watchdog event: main_watchdog")
-		main_watchdog.start_watchdog()
+    try:
+        main_watchdog = watchdogs.ThreadWatchdog(5, "watchdog event: main_watchdog")
+        main_watchdog.start_watchdog()
 
-		message_handler = MessageHandler()
-		master_handler = MasterHandler()
+        message_handler = MessageHandler()
+        master_handler = MasterHandler()
 
-		console_message = "Undefined console_message"
-		last_console_message = "Undefined console_message"
+        console_message = "Undefined console_message"
+        last_console_message = "Undefined console_message"
 
-		startup = True
-		startup_time = time.time() + 1
-		
-		print "Beginning master startup sequence..."
+        startup = True
+        startup_time = time.time() + 1
 
-		while startup:
-			time.sleep(TICK*100)
-			main_watchdog.pet_watchdog()
+        print "Beginning master startup sequence..."
 
-			###### SEND EMPTY MESSAGE WITH UNUSED ID TO PUT SLAVES IN 'CHANGING MASTER' STATE ######
-			message_handler.send_to_slave([0 for floor in range(0,N_FLOORS)],[0 for floor in range(0,N_FLOORS)],N_ELEVATORS+1)
-			
-			###### READ MESSAGES TO REDUCE AMOUNT OF OLD MESSAGES IN RECEIVE BUFFER ######
-			message_handler.receive_from_slave()
-			
-			if startup_time < time.time():
-				startup = False
+        while startup:
+            time.sleep(TICK * 100)
+            main_watchdog.pet_watchdog()
 
-			if not message_handler.connected_to_network():
-				raise KeyboardInterrupt
-		
-		print "Startup sequence finished!"
+            ###### SEND EMPTY MESSAGE WITH UNUSED ID TO PUT SLAVES IN 'CHANGING MASTER' STATE ######
+            message_handler.send_to_slave([0 for floor in range(0, N_FLOORS)], [0 for floor in range(0, N_FLOORS)],
+                                          N_ELEVATORS + 1)
 
-		while True:
-			time.sleep(TICK)
-			main_watchdog.pet_watchdog()
+            ###### READ MESSAGES TO REDUCE AMOUNT OF OLD MESSAGES IN RECEIVE BUFFER ######
+            message_handler.receive_from_slave()
 
-			if not message_handler.connected_to_network():
-				raise KeyboardInterrupt
+            if startup_time < time.time():
+                startup = False
 
-			master_handler.i_am_alive()
+            if not message_handler.connected_to_network():
+                raise KeyboardInterrupt
 
-			slave_message = message_handler.receive_from_slave()
+        print "Startup sequence finished!"
 
-			if slave_message is not None:
-				master_handler.process_slave_event(slave_message)		
+        while True:
+            time.sleep(TICK)
+            main_watchdog.pet_watchdog()
 
-			if master_handler.active_master() == MY_ID:
-				console_message = "Master (ID: " + str(MY_ID) + "): active!"
+            if not message_handler.connected_to_network():
+                raise KeyboardInterrupt
 
-				(assigned_orders_up,assigned_orders_down) = master_handler.current_assigned_orders()
+            master_handler.i_am_alive()
 
-				message_handler.send_to_slave(assigned_orders_up,assigned_orders_down,MY_ID)
+            slave_message = message_handler.receive_from_slave()
 
-			else:
-				console_message = "Master (ID: " + str(MY_ID) + "): inactive..."
+            if slave_message is not None:
+                master_handler.process_slave_event(slave_message)
 
-			if console_message != last_console_message:
-				print console_message
-				last_console_message = console_message
+            if master_handler.active_master() == MY_ID:
+                console_message = "Master (ID: " + str(MY_ID) + "): active!"
 
-	###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######							
-	except KeyboardInterrupt:
-		pass 
+                (assigned_orders_up, assigned_orders_down) = master_handler.current_assigned_orders()
 
-	except StandardError as error:
-		print error
-	finally:
-		print "Exiting master.py..."
-				
+                message_handler.send_to_slave(assigned_orders_up, assigned_orders_down, MY_ID)
+
+            else:
+                console_message = "Master (ID: " + str(MY_ID) + "): inactive..."
+
+            if console_message != last_console_message:
+                print console_message
+                last_console_message = console_message
+
+    ###### ALL THREADS MAY INTERRUPT MAIN USING A KEYBOARD INTERRUPT EXCEPTION ######
+    except KeyboardInterrupt:
+        pass
+
+    except StandardError as error:
+        print error
+    finally:
+        print "Exiting master.py..."
+
+
 if __name__ == "__main__":
     main()
